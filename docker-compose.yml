@@ -7,6 +7,15 @@ services:
         volumes:
             - ./configs/nginx.conf:/etc/nginx/nginx.conf:ro
             - ./html:/usr/share/nginx/html:ro
+    postgres:
+        env_file:
+            - .env
+        image: postgres:16-alpine
+        ports:
+            - 127.0.0.1:5431:5431
+        restart: unless-stopped
+        volumes:
+            - postgres_data:/var/lib/postgresql/data
     redis:
         image: redis:alpine
         ports:
@@ -15,4 +24,5 @@ services:
         volumes:
             - redis_data:/data
 volumes:
+    postgres_data: {}
     redis_data: {}
