@@ -1,0 +1,9 @@
+C:\Users\User\Documents\Raziq_Projects\PaymentGateway.Api\obj\Debug\net9.0\PaymentGateway.Api.csproj.AssemblyReference.cache
+C:\Users\User\Documents\Raziq_Projects\PaymentGateway.Api\obj\Debug\net9.0\rpswa.dswa.cache.json
+C:\Users\User\Documents\Raziq_Projects\PaymentGateway.Api\obj\Debug\net9.0\PaymentGateway.Api.GeneratedMSBuildEditorConfig.editorconfig
+C:\Users\User\Documents\Raziq_Projects\PaymentGateway.Api\obj\Debug\net9.0\PaymentGateway.Api.AssemblyInfoInputs.cache
+C:\Users\User\Documents\Raziq_Projects\PaymentGateway.Api\obj\Debug\net9.0\PaymentGateway.Api.AssemblyInfo.cs
+C:\Users\User\Documents\Raziq_Projects\PaymentGateway.Api\obj\Debug\net9.0\PaymentGateway.Api.csproj.CoreCompileInputs.cache
+C:\Users\User\Documents\Raziq_Projects\PaymentGateway.Api\obj\Debug\net9.0\PaymentGateway.Api.MvcApplicationPartsAssemblyInfo.cs
+C:\Users\User\Documents\Raziq_Projects\PaymentGateway.Api\obj\Debug\net9.0\PaymentGateway.Api.MvcApplicationPartsAssemblyInfo.cache
+C:\Users\User\Documents\Raziq_Projects\PaymentGateway.Api\obj\Debug\net9.0\PaymentGateway.Api.sourcelink.json

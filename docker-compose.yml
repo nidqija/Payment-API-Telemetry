@@ -16,6 +16,7 @@ services:
         restart: unless-stopped
         volumes:
             - postgres_data:/var/lib/postgresql/data
+            - ./docker/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
     redis:
         image: redis:alpine
         ports:
