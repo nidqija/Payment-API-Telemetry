@@ -140,6 +140,7 @@ public class IdempotencyService(NpgsqlDataSource dataSource)
                 // this is important for idempotency to ensure that the same request does not produce different results
                 if(status == "COMPLETED")
                 {
+                    // read the response code and body from the database
                     int code = reader.GetInt32(2);
                     string body = reader.GetString(3);
                     return new IdempotencyResult.Replay(code.ToString(), body);
@@ -149,14 +150,65 @@ public class IdempotencyService(NpgsqlDataSource dataSource)
     
             await reader.CloseAsync();
 
+            // wait for a short interval before polling again to avoid overwhelming the database with excessive queries
             await Task.Delay(PollingInterval, ct);
-
 
         }
 
 
 
         return new IdempotencyResult.Timeout();
+    }
+
+    // function to mark the idempotency record as completed with the response code and body
+    public async Task CompleteAsync(
+        Guid merchantId,
+        string IdempotencyKey,
+        int statusCode,
+        string responseBody,
+        CancellationToken ct // ct is used to cancel the operation if it takes too long
+    )
+    {
+        const string updateSql = """
+          UPDATE idempotency_records
+          SET status = 'COMPLETED',
+                response_code = $1,
+                response_body = $2
+            WHERE merchant_id = $3 AND idempotency_key = $4
+          
+          
+          """;
+
+          await using var conn = await dataSource.OpenConnectionAsync(ct); // parse ct to allow cancellation of the database operation if it takes too long
+          await using var cmd = new NpgsqlCommand(updateSql, conn);
+
+          cmd.Parameters.AddWithValue(statusCode);
+          cmd.Parameters.AddWithValue(JsonSerializer.Serialize(responseBody));
+          cmd.Parameters.AddWithValue(merchantId);
+          cmd.Parameters.AddWithValue(IdempotencyKey);
+
+          await cmd.ExecuteNonQueryAsync(ct);
+    }
+
+    // function to delete the idempotency record from the database if the operation fails
+    public async Task FailAsync(
+        Guid merchantId,
+        string IdempotencyKey,
+        CancellationToken ct
+    )
+    {
+        const string deleteSql = """
+          DELETE FROM idempotency_records
+          WHERE merchant_id = $1 AND idempotency_key = $2
+        """;
+
+
+        await using var conn = await dataSource.OpenConnectionAsync(ct);
+        await using var cmd = new NpgsqlCommand(deleteSql, conn);
+        cmd.Parameters.AddWithValue(merchantId);
+        cmd.Parameters.AddWithValue(IdempotencyKey);
+
+        await cmd.ExecuteNonQueryAsync(ct);
     }
 
 
