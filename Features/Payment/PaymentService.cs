@@ -1,7 +1,7 @@
 namespace Features.Payment;
 
 
-public class GeneratePayment
+public class PaymentService
 {
     public void Execute(String userID , decimal amount)
     {
