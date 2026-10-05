@@ -42,7 +42,7 @@ public class IdempotencyService(NpgsqlDataSource dataSource)
         CancellationToken ct // ct is used to cancel the operation if it takes too long
         )
     {
-
+        
         // compute the hash request code
         string requestHash = ComputeSha256(requestPayload);
 
@@ -70,6 +70,8 @@ public class IdempotencyService(NpgsqlDataSource dataSource)
                     NOW(),
                     NOW() + INTERVAL '1 hour'
                 )
+
+                ON CONFLICT (merchant_id, idempotency_key) DO NOTHING;
         """;
 
         // attempt to insert a new record for the idempotency key
@@ -86,6 +88,7 @@ public class IdempotencyService(NpgsqlDataSource dataSource)
             // if a new row was inserted, return an acquired result with the request hash
             if (rowsAffected > 0)
             {
+                // return response status code and body
                 return new IdempotencyResult.Acquired(requestHash);
             }
         }
@@ -102,7 +105,7 @@ public class IdempotencyService(NpgsqlDataSource dataSource)
 
             const string selectSql = """
               
-                SELECT request_hash, response_body
+                SELECT request_hash, response_body , response_code , status
                 FROM idempotency_records
                 WHERE merchant_id = $1 AND idempotency_key = $2
                 LIMIT 1;
@@ -110,6 +113,7 @@ public class IdempotencyService(NpgsqlDataSource dataSource)
 
             // open a new command to select the existing idempotency record for the given merchant and key
             await using var selectCmd = new NpgsqlCommand(selectSql, conn);
+            
 
             // parse the parameters for the SQL command to prevent SQL injection
             selectCmd.Parameters.AddWithValue(merchantId);
@@ -144,11 +148,10 @@ public class IdempotencyService(NpgsqlDataSource dataSource)
                     int code = reader.GetInt32(2);
                     string body = reader.GetString(3);
                     return new IdempotencyResult.Replay(code.ToString(), body);
-                }
+                } 
             }
-
-    
-            await reader.CloseAsync();
+            
+        
 
             // wait for a short interval before polling again to avoid overwhelming the database with excessive queries
             await Task.Delay(PollingInterval, ct);
@@ -173,7 +176,7 @@ public class IdempotencyService(NpgsqlDataSource dataSource)
           UPDATE idempotency_records
           SET status = 'COMPLETED',
                 response_code = $1,
-                response_body = $2
+                response_body = $2::jsonb
             WHERE merchant_id = $3 AND idempotency_key = $4
           
           
@@ -183,7 +186,7 @@ public class IdempotencyService(NpgsqlDataSource dataSource)
           await using var cmd = new NpgsqlCommand(updateSql, conn);
 
           cmd.Parameters.AddWithValue(statusCode);
-          cmd.Parameters.AddWithValue(JsonSerializer.Serialize(responseBody));
+          cmd.Parameters.AddWithValue(responseBody);
           cmd.Parameters.AddWithValue(merchantId);
           cmd.Parameters.AddWithValue(IdempotencyKey);
 
@@ -210,11 +213,6 @@ public class IdempotencyService(NpgsqlDataSource dataSource)
 
         await cmd.ExecuteNonQueryAsync(ct);
     }
-
-
-    
-
-
     
 
 }

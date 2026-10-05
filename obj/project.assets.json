@@ -2,6 +2,15 @@
   "version": 3,
   "targets": {
     "net9.0": {
+      "dotenv.net/4.2.0": {
+        "type": "package",
+        "compile": {
+          "lib/netstandard2.1/dotenv.net.dll": {}
+        },
+        "runtime": {
+          "lib/netstandard2.1/dotenv.net.dll": {}
+        }
+      },
       "Microsoft.AspNetCore.OpenApi/9.0.14": {
         "type": "package",
         "dependencies": {
@@ -88,6 +97,20 @@
     }
   },
   "libraries": {
+    "dotenv.net/4.2.0": {
+      "sha512": "3j0Vw0f8Hn0NQyXFqbURgNifPXL9hMLrNJ/f7+uOj8LGxlUdNCU5mErPa52UqHn8RocjUvMS/UnakCr4Fk8mMQ==",
+      "type": "package",
+      "path": "dotenv.net/4.2.0",
+      "files": [
+        ".nupkg.metadata",
+        ".signature.p7s",
+        "README.md",
+        "dotenv.net.4.2.0.nupkg.sha512",
+        "dotenv.net.nuspec",
+        "lib/netstandard2.0/dotenv.net.dll",
+        "lib/netstandard2.1/dotenv.net.dll"
+      ]
+    },
     "Microsoft.AspNetCore.OpenApi/9.0.14": {
       "sha512": "ywJcbdtem5tFlg73eCFb/ORdsZlASaTf0XixxsTQ8Z/ama/83CXB/nvBrvCrxkk62AKpdTxiESK0SvgmZ9HKFA==",
       "type": "package",
@@ -243,7 +266,8 @@
   "projectFileDependencyGroups": {
     "net9.0": [
       "Microsoft.AspNetCore.OpenApi >= 9.0.14",
-      "Npgsql >= 10.0.3"
+      "Npgsql >= 10.0.3",
+      "dotenv.net >= 4.2.0"
     ]
   },
   "packageFolders": {
@@ -303,6 +327,10 @@
           "Npgsql": {
             "target": "Package",
             "version": "[10.0.3, )"
+          },
+          "dotenv.net": {
+            "target": "Package",
+            "version": "[4.2.0, )"
           }
         },
         "imports": [

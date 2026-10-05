@@ -57,6 +57,10 @@
             "Npgsql": {
               "target": "Package",
               "version": "[10.0.3, )"
+            },
+            "dotenv.net": {
+              "target": "Package",
+              "version": "[4.2.0, )"
             }
           },
           "imports": [
