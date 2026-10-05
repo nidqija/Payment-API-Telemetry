@@ -1,46 +1,29 @@
+using Features.Idempotency;
+using Features.Payment;
+using Npgsql;
+using dotenv.net;
 
+DotEnv.Load();
 
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container.
-// Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
-builder.Services.AddOpenApi();
+var app_database = Environment.GetEnvironmentVariable("POSTGRES_DB") ?? "app_db";
+var app_user = Environment.GetEnvironmentVariable("POSTGRES_USER") ?? "postgres";
+var app_password = Environment.GetEnvironmentVariable("POSTGRES_PASSWORD") ?? "password";
+
+var connectionString = builder.Configuration.GetConnectionString("Database")
+    ?? $"Host=localhost;Port=5431;Database={app_database};Username={app_user};Password={app_password};SslMode=Disable;Include Error Detail=true;";
+
+
+builder.Services.AddSingleton(NpgsqlDataSource.Create(connectionString));
+
+builder.Services.AddScoped<IdempotencyService>();
 
 var app = builder.Build();
 
-// Configure the HTTP request pipeline.
-if (app.Environment.IsDevelopment())
-{
-    app.MapOpenApi();
-}
+app.MapGet("/", () => "Payment Gateway API is running!");
 
-app.UseHttpsRedirection();
-
-var summaries = new[]
-{
-    "Freezing", "Bracing", "Chilly", "Cool", "Mild", "Warm", "Balmy", "Hot", "Sweltering", "Scorching"
-};
-
-app.MapGet("/weatherforecast", () =>
-{
-    var forecast =  Enumerable.Range(1, 5).Select(index =>
-        new WeatherForecast
-        (
-            DateOnly.FromDateTime(DateTime.Now.AddDays(index)),
-            Random.Shared.Next(-20, 55),
-            summaries[Random.Shared.Next(summaries.Length)]
-        ))
-        .ToArray();
-    return forecast;
-})
-.WithName("GetWeatherForecast");
-
-
+app.MapPaymentEndpoints();
 
 app.Run();
-
-record WeatherForecast(DateOnly Date, int TemperatureC, string? Summary)
-{
-    public int TemperatureF => 32 + (int)(TemperatureC / 0.5556);
-}

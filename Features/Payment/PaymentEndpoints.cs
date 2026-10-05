@@ -5,7 +5,13 @@ using Features.Idempotency;
 
 namespace Features.Payment;
 
-
+public record CreateChargeRequest(
+    long Amount,
+    string? Currency,
+    string? CustomerEmail,
+    string? Description
+    
+);
 
 
 public static class PaymentEndpoints
@@ -37,12 +43,12 @@ public static class PaymentEndpoints
                 merchantId,
                 idempotencyKey,
                 payloadJson,
-                ct
+                cancellationToken
             );
 
             if ( result is IdempotencyService.IdempotencyResult.PayloadMismatch)
             {
-                return Result.UnprocessableEntity(new {error = "Payload mismatch for the given Idempotency Key"});
+                return Results.UnprocessableEntity(new {error = "Payload mismatch for the given Idempotency Key"});
             }
 
 
@@ -53,37 +59,79 @@ public static class PaymentEndpoints
 
             if ( result is IdempotencyService.IdempotencyResult.Replay replay)
             {
-                return Results.Content(replay.ResponseBody , "application/json" , statusCode: replay.StatusCode);
+                return Results.Content(replay.ResponseBody , "application/json" , statusCode: int.Parse(replay.RequestHash));
             }
 
             try
             {
                  
 
-                // ======================= TBC
+                
                 var chargeId = Guid.NewGuid();
 
                 const string insertChargeSql = """
 
-                    INSERT INTO 
+                    INSERT INTO payments ( id , merchant_id , idempotency_key , amount , currency , customer_email, status , created_at , updated_at )
+                    VALUES ( $1 , $2 , $3 , $4 , $5 , $6 , 'SUCCESS' , NOW() , NOW() )
                 
                 """;
 
-                Console.WriteLine("Inserting charge into database...");
-                Console.WriteLine($"Charge ID: {insertChargeSql}");
-                // ===================================================
                 
+
+                Console.WriteLine("Inserting charge into database...");
+                Console.WriteLine($"Charge ID: {chargeId}");
+
+
+                await using var conn = await dataSource.OpenConnectionAsync(cancellationToken);
+                await using var cmd = new NpgsqlCommand(insertChargeSql, conn);
+                cmd.Parameters.AddWithValue(chargeId);
+                cmd.Parameters.AddWithValue(merchantId); 
+                cmd.Parameters.AddWithValue(idempotencyKey);
+                cmd.Parameters.AddWithValue(request.Amount); 
+                cmd.Parameters.AddWithValue(request.Currency ?? "USD"); 
+                cmd.Parameters.AddWithValue(request.CustomerEmail);
+                await cmd.ExecuteNonQueryAsync(cancellationToken);
+
+
+                var response = new
+                {
+                   id = chargeId,
+                   status = "SUCCESSS",
+                   amount = request.Amount,
+                   currency = request.Currency,
+                   customer_email = request.CustomerEmail
+                };
+
+
+                await idempotencyService.CompleteAsync(
+                    merchantId,
+                    idempotencyKey,
+                    200,
+                    JsonSerializer.Serialize(response),
+                    cancellationToken
+                );
+
+                return Results.Created($"/v1/payments/{chargeId}", response);
+
                 
                 
             } catch (Exception ex)
             {
-                return Results.Problem(ex.Message);
+                Console.WriteLine($"Error processing payment: {ex.Message}");
+                await idempotencyService.FailAsync(
+                    merchantId,
+                    idempotencyKey,
+                    cancellationToken
+                );
+
+                throw;
             }
 
-            Console.WriteLine("Charge created successfully.");
 
             
         }
         );
+
+        return app;
     }
 }
