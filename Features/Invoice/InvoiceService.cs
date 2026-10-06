@@ -9,7 +9,7 @@ using QuestPDF.Infrastructure;
 
 namespace Features.Invoice;
 
-
+// init the default state of invoice template 
 public record InvoiceOptions {
     public string? AccentColor = "#000000";
     public bool ShowTax = true;
@@ -19,8 +19,12 @@ public record InvoiceOptions {
 
 public class InvoiceService(IConnectionMultiplexer redis , NpgsqlDataSource dataSource)
 {
+    // init redis db to be used for caching
     private readonly IDatabase _redis = redis.GetDatabase();
 
+    // helper function to compute option hash 
+    // this is required for generating unique key in redis for different options
+    // ensure that the cache will not overwrite each other 
     private string ComputeOptionsHash(InvoiceOptions options)
     {
         string raw = $"{options.AccentColor}:{options.ShowTax}:{options.Watermark}";
@@ -28,6 +32,8 @@ public class InvoiceService(IConnectionMultiplexer redis , NpgsqlDataSource data
         return Convert.ToHexString(bytes);
     }
 
+    // record for payment invoice data
+    // act as a data class for the payment invoice data
     private sealed record PaymentInvoiceData(
         Guid Id,
         long Amount,
@@ -38,7 +44,7 @@ public class InvoiceService(IConnectionMultiplexer redis , NpgsqlDataSource data
         string MerchantEmail
     );
 
-
+    // helper function that receives the paymentinvoice data payload and generate the pdf in byte code 
     private static byte[] GeneratePdfDocument(PaymentInvoiceData data , InvoiceOptions options)
     {
         var accentColor = options.AccentColor ?? "#000000";
@@ -132,21 +138,31 @@ public class InvoiceService(IConnectionMultiplexer redis , NpgsqlDataSource data
         return document.GeneratePdf();
     }
 
+    // main function to get or generate the pdf to be returned back to client
     public async Task<byte[]?> GetOrGenerateInvoicePdf(
         Guid paymentId,
         InvoiceOptions invoiceOptions,
         CancellationToken ct = default
     )
     {
+        // compute the option hash code
         string optionHash = ComputeOptionsHash(invoiceOptions);
+
+        // create the cache key for redis 
         string cachedKey = $"cache:pdf:{paymentId}:{optionHash}";
 
+        // retrieve the pdf from redis cache first
         byte[]? cachePdf = await _redis.StringGetAsync(cachedKey);
+
+        // if pdf is found , return it immediately 
+        // this is to ensure fast retrieval of the pdf 
+        // and reduce the constant poll on the database
         if(cachePdf is not null && cachePdf.Length > 0)
         {
             return cachePdf;
         }
 
+        // init query for payment invoice payload
         const string query = """
 
             SELECT 
@@ -168,13 +184,19 @@ public class InvoiceService(IConnectionMultiplexer redis , NpgsqlDataSource data
 
         PaymentInvoiceData? data = null;
 
+        // open connection to db
         await using var conn = await dataSource.OpenConnectionAsync(ct);
         await using var cmd = new NpgsqlCommand(query, conn);
 
+        // add parameter for payment id
         cmd.Parameters.AddWithValue(paymentId);
 
+
+        // execute the query and get the result
         await using var reader = await cmd.ExecuteReaderAsync(ct);
 
+        // check if there is a record returned from the db
+        // then map the record to the PaymentInvoiceData object
         if ( await reader.ReadAsync(ct))
         {
             data = new PaymentInvoiceData(
@@ -188,14 +210,20 @@ public class InvoiceService(IConnectionMultiplexer redis , NpgsqlDataSource data
             );
         }
 
+        // if the data record is empty , return null back to the client
         if(data is null)
         {
             return null;
         }
 
+        // call the pdf helper function to retrieve the pdf generated
         byte[] pdfBytes = GeneratePdfDocument(data , invoiceOptions);
 
+        // store the generated pdf in redis cache
+        // can be used for future requests
         await _redis.StringSetAsync(cachedKey, pdfBytes, TimeSpan.FromDays(7));
+
+        // return the pdfbyte code
         return pdfBytes;
 
     }
