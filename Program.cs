@@ -2,10 +2,12 @@ using Features.Idempotency;
 using Features.Payment;
 using Npgsql;
 using dotenv.net;
+using QuestPDF.Infrastructure;
 
 DotEnv.Load();
 
 
+QuestPDF.Settings.License = LicenseType.Community;
 var builder = WebApplication.CreateBuilder(args);
 
 var app_database = Environment.GetEnvironmentVariable("POSTGRES_DB") ?? "app_db";
