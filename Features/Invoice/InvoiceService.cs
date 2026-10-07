@@ -38,7 +38,7 @@ public class InvoiceService(IConnectionMultiplexer redis , NpgsqlDataSource data
         Guid Id,
         long Amount,
         string Currency,
-        DateTimeOffset CreatedAt,
+        DateTime CreatedAt,
         string? CustomerEmail,
         string MerchantName,
         string MerchantEmail

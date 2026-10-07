@@ -1,6 +1,6 @@
 using Features.Invoice;
 using Microsoft.AspNetCore.Mvc;
-namespace Feature.Invoice;
+namespace Features.Invoice;
 
 
 
@@ -14,10 +14,10 @@ public static class InvoiceEndpoints
     public static IEndpointRouteBuilder MapInvoiceEndpoints(this IEndpointRouteBuilder app)
     {
         // create the endpoint with required parameters for report generation
-        app.MapGet("/v1/payments{id:guid}/invoice" , async(
+        app.MapGet("/v1/payments/{id:guid}/invoice" , async(
             Guid id , 
-            [AsParameters] InvoiceService invoiceService,
-            InvoiceOptions invoiceOptions,
+            InvoiceService invoiceService,
+            [AsParameters] InvoiceOptions invoiceOptions,
             CancellationToken ct
 
         ) =>
