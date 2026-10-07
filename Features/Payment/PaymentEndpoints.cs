@@ -2,6 +2,7 @@ using System.Text.Json;
 using Microsoft.AspNetCore.Mvc;
 using Npgsql;
 using Features.Idempotency;
+using Features.Invoice;
 
 namespace Features.Payment;
 
@@ -9,7 +10,9 @@ public record CreateChargeRequest(
     long Amount,
     string? Currency,
     string? CustomerEmail,
-    string? Description
+    string? Description,
+    InvoiceOptions? invoiceOptions = null,
+    bool GenerateInvoice = false
     
 );
 
@@ -28,6 +31,7 @@ public static class PaymentEndpoints
             [FromBody] CreateChargeRequest request,
             IdempotencyService idempotencyService,
             NpgsqlDataSource dataSource,
+            InvoiceService invoiceService,
             CancellationToken cancellationToken) =>
         {
             if (string.IsNullOrWhiteSpace(idempotencyKey))
@@ -93,13 +97,37 @@ public static class PaymentEndpoints
                 await cmd.ExecuteNonQueryAsync(cancellationToken);
 
 
+                object? invoiceResponse = null;
+
+                if (request.GenerateInvoice)
+                {
+                    var options = request.invoiceOptions ?? new InvoiceOptions();
+                    _ = Task.Run(async() =>
+                    {
+                        try
+                        {
+                            await invoiceService.GetOrGenerateInvoicePdf(chargeId , options , CancellationToken.None);
+                        } catch(Exception ex)
+                        {
+                            Console.WriteLine($"Error Generating Invoice for Payment Id {chargeId} : {ex.Message}");
+                        }
+                    });
+
+                    invoiceResponse = new
+                    {
+                        download_url = $"/v1/payments/{chargeId}/invoice"
+                    };
+                }
+
+
                 var response = new
                 {
                    id = chargeId,
-                   status = "SUCCESSS",
+                   status = "SUCCESS",
                    amount = request.Amount,
                    currency = request.Currency,
-                   customer_email = request.CustomerEmail
+                   customer_email = request.CustomerEmail,
+                   invoice = invoiceResponse
                 };
 
 

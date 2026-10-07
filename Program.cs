@@ -34,8 +34,8 @@ builder.Services.AddScoped<InvoiceService>();
 
 var app = builder.Build();
 
-app.MapGet("/", () => "Payment Gateway API is running!");
 
 app.MapPaymentEndpoints();
+app.MapInvoiceEndpoints();
 
 app.Run();
