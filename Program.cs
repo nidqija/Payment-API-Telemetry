@@ -35,6 +35,9 @@ builder.Services.AddScoped<InvoiceService>();
 var app = builder.Build();
 
 
+app.MapGet("/", () => "Hello World!");
+
+
 app.MapPaymentEndpoints();
 app.MapInvoiceEndpoints();
 

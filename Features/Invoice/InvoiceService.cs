@@ -154,14 +154,17 @@ public class InvoiceService(IConnectionMultiplexer redis , NpgsqlDataSource data
         // retrieve the pdf from redis cache first
         byte[]? cachePdf = await _redis.StringGetAsync(cachedKey);
 
+
         // if pdf is found , return it immediately 
         // this is to ensure fast retrieval of the pdf 
         // and reduce the constant poll on the database
         if(cachePdf is not null && cachePdf.Length > 0)
         {
+            Console.WriteLine("Retrieved PDF from cache!");
             return cachePdf;
         }
 
+        // if pdf is not found in cache , retrieve from db instead
         // init query for payment invoice payload
         const string query = """
 
