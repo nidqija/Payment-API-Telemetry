@@ -1,0 +1,175 @@
+name: Dev Release
+
+on:
+  pull_request:
+    branches:
+      - master
+    types:
+      - closed
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  packages: write
+
+jobs:
+  dev-release:
+    name: Build & Publish Dev Release
+    runs-on: ubuntu-latest
+    if: github.event_name == 'workflow_dispatch' || (github.event.pull_request.merged == true && github.event.pull_request.base.ref == 'master')
+
+    steps:
+      - name: Checkout Master Branch
+        uses: actions/checkout@v4
+        with:
+          ref: master
+          fetch-depth: 0
+
+      - name: Setup .NET SDK
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '9.0.x'
+
+      - name: Restore Dependencies
+        run: dotnet restore
+
+      - name: Build in Release Mode
+        run: dotnet build --no-restore --configuration Release
+
+      - name: Publish API
+        run: dotnet publish --configuration Release --no-build --output ./publish
+
+      - name: Generate Developer Release Notes from CHANGELOG.html
+        id: meta
+        run: |
+          python3 - << 'EOF'
+          import os
+          import re
+          import subprocess
+
+          with open('CHANGELOG.html', 'r', encoding='utf-8') as f:
+              html = f.read()
+
+          # Locate the latest release section in CHANGELOG.html
+          sec_match = re.search(r'<section class="release-section"[^>]*>(.*?)</section>', html, re.DOTALL)
+          if not sec_match:
+              raise SystemExit("No release-section found in CHANGELOG.html")
+
+          sec = sec_match.group(1)
+
+          # Extract version tag (e.g., v1.3.0)
+          tag_match = re.search(r'class="version-tag">\s*([^<]+)', sec)
+          tag = tag_match.group(1).strip() if tag_match else "v1.0.0"
+
+          # Extract summary heading & release date
+          summary_match = re.search(r'class="release-summary">\s*([^<]+)', sec)
+          summary = summary_match.group(1).strip() if summary_match else "Dev Release"
+
+          date_match = re.search(r'class="release-date">\s*([^<]+)', sec)
+          rel_date = date_match.group(1).strip() if date_match else "Latest"
+
+          # Extract categories and individual feature notes
+          features_text = []
+          for cat in re.finditer(r'<div class="category-heading[^"]*">\s*<span>([^<]*)</span>\s*([^<]+)</div>\s*<ul class="feature-items-list">(.*?)</ul>', sec, re.DOTALL):
+              icon = cat.group(1).strip()
+              cat_name = cat.group(2).strip()
+              features_text.append(f"#### {icon} {cat_name}\n")
+              
+              items_html = cat.group(3)
+              for item in re.finditer(r'<div class="feature-title">\s*([^<]+)</div>\s*<div class="feature-desc">\s*(.*?)\s*</div>', items_html, re.DOTALL):
+                  title = item.group(1).strip()
+                  raw_desc = item.group(2).strip()
+                  # Clean up HTML formatting tags inside descriptions
+                  desc = re.sub(r'<code>([^<]+)</code>', r'`\1`', raw_desc)
+                  desc = re.sub(r'<[^>]+>', '', desc)
+                  desc = re.sub(r'\s+', ' ', desc)
+                  features_text.append(f"- **{title}**\n  {desc}\n")
+
+          # Extract commit list
+          commits_text = []
+          for commit in re.finditer(r'<span class="commit-msg">\s*([^<]+)</span>\s*<span class="commit-hash"[^>]*>\s*([^<]+)</span>', sec):
+              c_msg = commit.group(1).strip()
+              c_hash = commit.group(2).strip()
+              commits_text.append(f"- `{c_hash}` - {c_msg}")
+
+          # Get short commit SHA
+          short_sha = subprocess.check_output(['git', 'rev-parse', '--short', 'HEAD']).decode('utf-8').strip()
+
+          # Build formatted markdown developer notes
+          notes = f"""# 🚀 PaymentGateway.Api - {tag}
+
+> **{summary}**  
+> *Released: {rel_date}* • *Trigger: Merged to `master`* • *Commit: `{short_sha}`*
+
+---
+
+### 📋 Developer Release Notes & Highlights
+
+{chr(10).join(features_text)}
+---
+
+### 🔨 Commits in this Release
+{chr(10).join(commits_text) if commits_text else "- *(No commit hashes listed)*"}
+
+---
+
+### 📦 Artifacts
+- **Binary Package**: `paymentgateway-api-{tag}.zip`
+- **Interactive Changelog**: `CHANGELOG.html`
+- **Docker Tags**: `paymentgateway-api:dev`, `paymentgateway-api:{tag}`
+"""
+
+          with open('RELEASE_NOTES.md', 'w', encoding='utf-8') as out:
+              out.write(notes)
+
+          # Pass metadata outputs to subsequent GitHub Actions steps
+          gh_output = os.environ.get('GITHUB_OUTPUT')
+          if gh_output:
+              with open(gh_output, 'a', encoding='utf-8') as out:
+                  out.write(f"version={tag}\n")
+                  out.write(f"tag_name=developer-update-{tag}\n")
+                  out.write(f"summary={summary}\n")
+                  out.write(f"date={rel_date}\n")
+                  out.write(f"short_sha={short_sha}\n")
+
+          print(f"Generated RELEASE_NOTES.md for developer-update-{tag}: {summary}")
+          EOF
+
+      - name: Package Release Archives
+        run: |
+          cd publish
+          zip -r "../paymentgateway-api-${{ steps.meta.outputs.version }}.zip" .
+          cd ..
+
+      - name: Verify Docker Container Build
+        run: |
+          docker build \
+            -t paymentgateway-api:dev \
+            -t paymentgateway-api:${{ steps.meta.outputs.version }} \
+            -t paymentgateway-api:${{ steps.meta.outputs.short_sha }} .
+
+      - name: Upload Build Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: dev-release-artifacts-${{ steps.meta.outputs.version }}
+          path: |
+            paymentgateway-api-${{ steps.meta.outputs.version }}.zip
+            CHANGELOG.html
+            RELEASE_NOTES.md
+          retention-days: 14
+
+      - name: Create GitHub Dev Pre-Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ steps.meta.outputs.tag_name }}
+          name: "Developer Update - ${{ steps.meta.outputs.version }}: ${{ steps.meta.outputs.summary }}"
+          body_path: RELEASE_NOTES.md
+          prerelease: true
+          draft: false
+          generate_release_notes: true
+          files: |
+            paymentgateway-api-${{ steps.meta.outputs.version }}.zip
+            CHANGELOG.html
+            RELEASE_NOTES.md
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
