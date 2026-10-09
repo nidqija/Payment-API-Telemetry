@@ -1,0 +1,1531 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Changelog & Release Notes | PaymentGateway.Api</title>
+  <meta name="description" content="Release notes, feature updates, and engineering changelog for PaymentGateway.Api - high performance .NET 9 payment engine with strict idempotency and QuestPDF invoicing.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg-base: #07090e;
+      --bg-surface: #0e131f;
+      --bg-surface-elevated: #151d2f;
+      --bg-surface-hover: #1c263d;
+      --border-subtle: rgba(255, 255, 255, 0.07);
+      --border-strong: rgba(255, 255, 255, 0.14);
+      --text-primary: #f8fafc;
+      --text-secondary: #94a3b8;
+      --text-muted: #64748b;
+      --accent-cyan: #06b6d4;
+      --accent-cyan-glow: rgba(6, 182, 212, 0.25);
+      --accent-indigo: #6366f1;
+      --accent-indigo-glow: rgba(99, 102, 241, 0.25);
+      --accent-emerald: #10b981;
+      --accent-emerald-glow: rgba(16, 185, 129, 0.2);
+      --accent-amber: #f59e0b;
+      --accent-amber-glow: rgba(245, 158, 11, 0.2);
+      --accent-purple: #a855f7;
+      --accent-rose: #f43f5e;
+      --font-sans: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+      --font-mono: 'JetBrains Mono', monospace;
+      --radius-sm: 6px;
+      --radius-md: 10px;
+      --radius-lg: 16px;
+      --radius-full: 9999px;
+      --shadow-card: 0 10px 30px -10px rgba(0, 0, 0, 0.5), 0 0 0 1px var(--border-subtle);
+      --shadow-glow: 0 0 25px -5px var(--accent-indigo-glow);
+      --transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    [data-theme="light"] {
+      --bg-base: #f8fafc;
+      --bg-surface: #ffffff;
+      --bg-surface-elevated: #f1f5f9;
+      --bg-surface-hover: #e2e8f0;
+      --border-subtle: rgba(0, 0, 0, 0.08);
+      --border-strong: rgba(0, 0, 0, 0.15);
+      --text-primary: #0f172a;
+      --text-secondary: #475569;
+      --text-muted: #94a3b8;
+      --accent-cyan: #0284c7;
+      --accent-cyan-glow: rgba(2, 132, 199, 0.15);
+      --accent-indigo: #4f46e5;
+      --accent-indigo-glow: rgba(79, 70, 229, 0.15);
+      --shadow-card: 0 8px 24px -6px rgba(0, 0, 0, 0.08), 0 0 0 1px var(--border-subtle);
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      background-color: var(--bg-base);
+      color: var(--text-primary);
+      font-family: var(--font-sans);
+      line-height: 1.6;
+      -webkit-font-smoothing: antialiased;
+      transition: background-color 0.3s ease, color 0.3s ease;
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    /* Ambient background mesh */
+    .bg-mesh {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      pointer-events: none;
+      z-index: 0;
+      background: 
+        radial-gradient(circle 600px at 15% 15%, rgba(99, 102, 241, 0.12), transparent 80%),
+        radial-gradient(circle 500px at 85% 25%, rgba(6, 182, 212, 0.1), transparent 80%),
+        radial-gradient(circle 700px at 50% 85%, rgba(168, 85, 247, 0.07), transparent 80%);
+    }
+
+    .container {
+      max-width: 1140px;
+      margin: 0 auto;
+      padding: 0 24px;
+      position: relative;
+      z-index: 1;
+    }
+
+    /* Header & Navigation */
+    header {
+      padding: 48px 0 32px;
+      border-bottom: 1px solid var(--border-subtle);
+      margin-bottom: 40px;
+    }
+
+    .nav-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 36px;
+      flex-wrap: wrap;
+      gap: 16px;
+    }
+
+    .brand-group {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+
+    .brand-icon {
+      width: 44px;
+      height: 44px;
+      border-radius: var(--radius-md);
+      background: linear-gradient(135deg, var(--accent-indigo), var(--accent-cyan));
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 22px;
+      box-shadow: 0 0 20px rgba(99, 102, 241, 0.4);
+    }
+
+    .brand-title {
+      font-size: 1.35rem;
+      font-weight: 800;
+      letter-spacing: -0.02em;
+      background: linear-gradient(135deg, #ffffff 30%, #94a3b8 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    [data-theme="light"] .brand-title {
+      background: linear-gradient(135deg, #0f172a 30%, #475569 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .header-actions {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 16px;
+      font-size: 0.875rem;
+      font-weight: 600;
+      border-radius: var(--radius-md);
+      cursor: pointer;
+      border: 1px solid var(--border-strong);
+      background: var(--bg-surface);
+      color: var(--text-primary);
+      transition: var(--transition);
+      text-decoration: none;
+    }
+
+    .btn:hover {
+      background: var(--bg-surface-hover);
+      border-color: var(--accent-indigo);
+      transform: translateY(-1px);
+    }
+
+    .btn-icon-only {
+      padding: 8px 12px;
+      font-size: 1rem;
+    }
+
+    .hero-content {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .hero-badge-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 4px 10px;
+      border-radius: var(--radius-full);
+      font-size: 0.75rem;
+      font-weight: 600;
+      letter-spacing: 0.02em;
+      text-transform: uppercase;
+    }
+
+    .badge-branch {
+      background: rgba(99, 102, 241, 0.15);
+      color: #a5b4fc;
+      border: 1px solid rgba(99, 102, 241, 0.3);
+    }
+
+    .badge-status {
+      background: rgba(16, 185, 129, 0.15);
+      color: #6ee7b7;
+      border: 1px solid rgba(16, 185, 129, 0.3);
+    }
+
+    .pulse-dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background-color: var(--accent-emerald);
+      box-shadow: 0 0 10px var(--accent-emerald);
+      animation: pulse 2s infinite;
+    }
+
+    @keyframes pulse {
+      0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7); }
+      70% { transform: scale(1.1); box-shadow: 0 0 0 6px rgba(16, 185, 129, 0); }
+      100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
+    }
+
+    h1.hero-title {
+      font-size: 2.75rem;
+      font-weight: 800;
+      line-height: 1.15;
+      letter-spacing: -0.03em;
+    }
+
+    .hero-gradient-text {
+      background: linear-gradient(135deg, #38bdf8 0%, #818cf8 50%, #c084fc 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    p.hero-desc {
+      font-size: 1.1rem;
+      color: var(--text-secondary);
+      max-width: 760px;
+    }
+
+    /* Stats Ribbon */
+    .stats-ribbon {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 16px;
+      margin: 32px 0 44px;
+    }
+
+    .stat-card {
+      background: var(--bg-surface);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-lg);
+      padding: 18px 22px;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      transition: var(--transition);
+      box-shadow: var(--shadow-card);
+    }
+
+    .stat-card:hover {
+      border-color: var(--border-strong);
+      transform: translateY(-2px);
+    }
+
+    .stat-label {
+      font-size: 0.8rem;
+      font-weight: 600;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    .stat-value {
+      font-size: 1.75rem;
+      font-weight: 800;
+      color: var(--text-primary);
+      letter-spacing: -0.02em;
+    }
+
+    .stat-detail {
+      font-size: 0.8rem;
+      color: var(--text-secondary);
+    }
+
+    /* Controls Bar: Search & Category Filters */
+    .controls-wrapper {
+      position: sticky;
+      top: 16px;
+      z-index: 10;
+      background: rgba(14, 19, 31, 0.85);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-lg);
+      padding: 16px;
+      margin-bottom: 40px;
+      box-shadow: 0 20px 40px -15px rgba(0, 0, 0, 0.4);
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    [data-theme="light"] .controls-wrapper {
+      background: rgba(255, 255, 255, 0.85);
+    }
+
+    .search-row {
+      display: flex;
+      gap: 12px;
+      align-items: center;
+    }
+
+    .search-input-box {
+      flex: 1;
+      position: relative;
+    }
+
+    .search-input-box svg {
+      position: absolute;
+      left: 14px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: var(--text-muted);
+      width: 18px;
+      height: 18px;
+    }
+
+    .search-input {
+      width: 100%;
+      padding: 10px 16px 10px 42px;
+      background: var(--bg-surface-elevated);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-md);
+      color: var(--text-primary);
+      font-family: var(--font-sans);
+      font-size: 0.925rem;
+      outline: none;
+      transition: var(--transition);
+    }
+
+    .search-input:focus {
+      border-color: var(--accent-indigo);
+      box-shadow: 0 0 0 3px var(--accent-indigo-glow);
+    }
+
+    .search-input::placeholder {
+      color: var(--text-muted);
+    }
+
+    .filter-tags {
+      display: flex;
+      gap: 8px;
+      overflow-x: auto;
+      padding-bottom: 4px;
+      scrollbar-width: none;
+    }
+
+    .filter-tags::-webkit-scrollbar {
+      display: none;
+    }
+
+    .filter-btn {
+      padding: 6px 14px;
+      background: var(--bg-surface-elevated);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-full);
+      color: var(--text-secondary);
+      font-size: 0.825rem;
+      font-weight: 600;
+      cursor: pointer;
+      white-space: nowrap;
+      transition: var(--transition);
+    }
+
+    .filter-btn:hover {
+      color: var(--text-primary);
+      background: var(--bg-surface-hover);
+    }
+
+    .filter-btn.active {
+      background: var(--accent-indigo);
+      color: #ffffff;
+      border-color: var(--accent-indigo);
+      box-shadow: 0 2px 10px var(--accent-indigo-glow);
+    }
+
+    /* Timeline Container */
+    .timeline {
+      position: relative;
+      padding-left: 36px;
+      margin-bottom: 60px;
+    }
+
+    .timeline::before {
+      content: '';
+      position: absolute;
+      left: 12px;
+      top: 24px;
+      bottom: 24px;
+      width: 2px;
+      background: linear-gradient(to bottom, var(--accent-cyan), var(--accent-indigo) 50%, var(--border-subtle));
+    }
+
+    /* Release Card */
+    .release-section {
+      position: relative;
+      margin-bottom: 48px;
+    }
+
+    .timeline-node {
+      position: absolute;
+      left: -36px;
+      top: 20px;
+      width: 24px;
+      height: 24px;
+      border-radius: 50%;
+      background: var(--bg-base);
+      border: 2px solid var(--accent-cyan);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 2;
+      box-shadow: 0 0 12px var(--accent-cyan-glow);
+    }
+
+    .timeline-node-inner {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--accent-cyan);
+    }
+
+    .release-section:nth-child(2) .timeline-node { border-color: var(--accent-indigo); box-shadow: 0 0 12px var(--accent-indigo-glow); }
+    .release-section:nth-child(2) .timeline-node-inner { background: var(--accent-indigo); }
+    .release-section:nth-child(3) .timeline-node { border-color: var(--accent-purple); box-shadow: 0 0 12px rgba(168, 85, 247, 0.3); }
+    .release-section:nth-child(3) .timeline-node-inner { background: var(--accent-purple); }
+    .release-section:nth-child(4) .timeline-node { border-color: var(--accent-emerald); box-shadow: 0 0 12px var(--accent-emerald-glow); }
+    .release-section:nth-child(4) .timeline-node-inner { background: var(--accent-emerald); }
+    .release-section:nth-child(5) .timeline-node { border-color: var(--accent-amber); box-shadow: 0 0 12px var(--accent-amber-glow); }
+    .release-section:nth-child(5) .timeline-node-inner { background: var(--accent-amber); }
+
+    .release-card {
+      background: var(--bg-surface);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-lg);
+      overflow: hidden;
+      box-shadow: var(--shadow-card);
+      transition: var(--transition);
+    }
+
+    .release-card:hover {
+      border-color: var(--border-strong);
+    }
+
+    .release-header {
+      padding: 24px 28px;
+      background: linear-gradient(180deg, rgba(255, 255, 255, 0.02), transparent);
+      border-bottom: 1px solid var(--border-subtle);
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      flex-wrap: wrap;
+      gap: 16px;
+    }
+
+    .release-title-area {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .release-tag-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .version-tag {
+      font-size: 1.25rem;
+      font-weight: 800;
+      color: var(--text-primary);
+      letter-spacing: -0.01em;
+      font-family: var(--font-mono);
+    }
+
+    .tag-pill {
+      font-size: 0.75rem;
+      font-weight: 700;
+      padding: 3px 10px;
+      border-radius: var(--radius-full);
+      letter-spacing: 0.03em;
+    }
+
+    .tag-latest {
+      background: rgba(6, 182, 212, 0.15);
+      color: #38bdf8;
+      border: 1px solid rgba(6, 182, 212, 0.4);
+    }
+
+    .release-date {
+      font-size: 0.85rem;
+      color: var(--text-muted);
+      font-family: var(--font-mono);
+    }
+
+    .release-summary {
+      font-size: 1.05rem;
+      font-weight: 600;
+      color: var(--text-secondary);
+    }
+
+    .release-body {
+      padding: 24px 28px;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+
+    /* Feature Category Block */
+    .feature-category {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .category-heading {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 0.85rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--accent-cyan);
+    }
+
+    .category-heading.infra { color: #818cf8; }
+    .category-heading.pdf { color: #f472b6; }
+    .category-heading.security { color: #34d399; }
+    .category-heading.core { color: #fbbf24; }
+
+    .feature-items-list {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .feature-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 14px;
+      padding: 12px 16px;
+      background: var(--bg-surface-elevated);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-md);
+      transition: var(--transition);
+    }
+
+    .feature-item:hover {
+      background: var(--bg-surface-hover);
+      border-color: rgba(255, 255, 255, 0.12);
+      transform: translateX(3px);
+    }
+
+    .feature-bullet {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: var(--accent-indigo);
+      margin-top: 8px;
+      flex-shrink: 0;
+    }
+
+    .feature-content {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .feature-title {
+      font-size: 0.925rem;
+      font-weight: 700;
+      color: var(--text-primary);
+    }
+
+    .feature-desc {
+      font-size: 0.85rem;
+      color: var(--text-secondary);
+      line-height: 1.5;
+    }
+
+    .feature-tags {
+      display: flex;
+      gap: 6px;
+      margin-top: 6px;
+      flex-wrap: wrap;
+    }
+
+    .meta-tag {
+      font-size: 0.7rem;
+      font-family: var(--font-mono);
+      padding: 2px 8px;
+      border-radius: var(--radius-sm);
+      background: rgba(255, 255, 255, 0.04);
+      color: var(--text-muted);
+      border: 1px solid var(--border-subtle);
+    }
+
+    /* Commits Box */
+    .commits-box {
+      margin-top: 12px;
+      border-top: 1px dashed var(--border-subtle);
+      padding-top: 16px;
+    }
+
+    .commits-toggle-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 0.8rem;
+      font-weight: 600;
+      color: var(--text-muted);
+      background: none;
+      border: none;
+      cursor: pointer;
+      padding: 4px 8px;
+      border-radius: var(--radius-sm);
+      transition: var(--transition);
+    }
+
+    .commits-toggle-btn:hover {
+      color: var(--text-primary);
+      background: var(--bg-surface-elevated);
+    }
+
+    .commits-list {
+      display: none;
+      flex-direction: column;
+      gap: 8px;
+      margin-top: 12px;
+    }
+
+    .commits-list.open {
+      display: flex;
+    }
+
+    .commit-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 6px 12px;
+      background: rgba(0, 0, 0, 0.2);
+      border-radius: var(--radius-sm);
+      font-size: 0.8rem;
+      font-family: var(--font-mono);
+      gap: 12px;
+    }
+
+    .commit-msg {
+      color: var(--text-secondary);
+      flex: 1;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .commit-hash {
+      color: var(--accent-cyan);
+      cursor: pointer;
+      padding: 2px 6px;
+      background: rgba(6, 182, 212, 0.1);
+      border-radius: 4px;
+      transition: var(--transition);
+    }
+
+    .commit-hash:hover {
+      background: rgba(6, 182, 212, 0.25);
+      color: #ffffff;
+    }
+
+    /* Code Snippet Box */
+    .code-preview {
+      background: #030712;
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-md);
+      padding: 14px 18px;
+      font-family: var(--font-mono);
+      font-size: 0.8rem;
+      color: #94a3b8;
+      overflow-x: auto;
+      margin-top: 8px;
+    }
+
+    .code-preview code {
+      color: #38bdf8;
+    }
+
+    .code-preview .comment {
+      color: #475569;
+    }
+
+    /* Toast Notification */
+    #toast {
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
+      background: var(--accent-indigo);
+      color: white;
+      padding: 10px 18px;
+      border-radius: var(--radius-md);
+      font-size: 0.85rem;
+      font-weight: 600;
+      box-shadow: 0 10px 25px -5px rgba(99, 102, 241, 0.5);
+      transform: translateY(100px);
+      opacity: 0;
+      transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+      z-index: 1000;
+    }
+
+    #toast.show {
+      transform: translateY(0);
+      opacity: 1;
+    }
+
+    /* Footer */
+    footer {
+      border-top: 1px solid var(--border-subtle);
+      padding: 40px 0 60px;
+      text-align: center;
+      color: var(--text-muted);
+      font-size: 0.85rem;
+    }
+
+    .footer-links {
+      display: flex;
+      justify-content: center;
+      gap: 20px;
+      margin-bottom: 14px;
+    }
+
+    .footer-links a {
+      color: var(--text-secondary);
+      text-decoration: none;
+      transition: var(--transition);
+    }
+
+    .footer-links a:hover {
+      color: var(--accent-cyan);
+    }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+      h1.hero-title {
+        font-size: 2rem;
+      }
+      .timeline {
+        padding-left: 28px;
+      }
+      .timeline-node {
+        left: -28px;
+        width: 20px;
+        height: 20px;
+      }
+      .release-header, .release-body {
+        padding: 18px 20px;
+      }
+      .search-row {
+        flex-direction: column;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="bg-mesh"></div>
+
+  <div class="container">
+    <!-- Header -->
+    <header>
+      <nav class="nav-bar">
+        <div class="brand-group">
+          <div class="brand-icon">💳</div>
+          <div>
+            <div class="brand-title">PaymentGateway.Api</div>
+            <div style="font-size: 0.75rem; color: var(--text-muted); font-family: var(--font-mono);">.NET 9 • PostgreSQL 16 • QuestPDF • Redis</div>
+          </div>
+        </div>
+
+        <div class="header-actions">
+          <button class="btn btn-icon-only" id="theme-toggle" title="Toggle Light/Dark Theme" aria-label="Toggle theme">
+            🌓
+          </button>
+          <a href="./README.md" class="btn" id="btn-readme" title="View documentation">
+            <span>📖</span> Architecture Docs
+          </a>
+          <button class="btn" id="btn-expand-all" title="Toggle commit lists">
+            <span>📂</span> Expand Commits
+          </button>
+        </div>
+      </nav>
+
+      <div class="hero-content">
+        <div class="hero-badge-row">
+          <span class="badge badge-branch">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="6" y1="3" x2="6" y2="15"></line><circle cx="18" cy="6" r="3"></circle><circle cx="6" cy="18" r="3"></circle><path d="M18 9a9 9 0 0 1-9 9"></path></svg>
+            feat/port-forward-test
+          </span>
+          <span class="badge badge-status">
+            <span class="pulse-dot"></span>
+            Production Ready
+          </span>
+          <span class="badge" style="background: rgba(245, 158, 11, 0.15); color: #fbbf24; border: 1px solid rgba(245, 158, 11, 0.3);">
+            QuestPDF Community Edition
+          </span>
+        </div>
+
+        <h1 class="hero-title">
+          Product & Architecture <span class="hero-gradient-text">Changelog</span>
+        </h1>
+        <p class="hero-desc">
+          Continuous release record of features, engineering improvements, and infrastructure milestones implemented in <strong>PaymentGateway.Api</strong>.
+        </p>
+      </div>
+
+      <!-- Quick Stats Ribbon -->
+      <div class="stats-ribbon">
+        <div class="stat-card">
+          <span class="stat-label">Milestones Released</span>
+          <span class="stat-value" id="stat-releases-count">5</span>
+          <span class="stat-detail">From v0.1.0 to v1.3.0</span>
+        </div>
+        <div class="stat-card">
+          <span class="stat-label">Total Commits</span>
+          <span class="stat-value" id="stat-commits-count">17</span>
+          <span class="stat-detail">Authored by Raziq Din</span>
+        </div>
+        <div class="stat-card">
+          <span class="stat-label">Core Guarantees</span>
+          <span class="stat-value">100%</span>
+          <span class="stat-detail">Strict Exactly-Once Idempotency</span>
+        </div>
+        <div class="stat-card">
+          <span class="stat-label">Invoice Engine</span>
+          <span class="stat-value">7-Day</span>
+          <span class="stat-detail">Redis Multi-Tier Cached PDF</span>
+        </div>
+      </div>
+    </header>
+
+    <!-- Controls Bar -->
+    <div class="controls-wrapper" id="controls">
+      <div class="search-row">
+        <div class="search-input-box">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+          <input type="text" id="search-input" class="search-input" placeholder="Search features, commits, endpoints, keywords (e.g. nginx, questpdf, idempotency)..." />
+        </div>
+      </div>
+
+      <div class="filter-tags" id="filter-container">
+        <button class="filter-btn active" data-category="all">All Releases</button>
+        <button class="filter-btn" data-category="infra">Proxy & Docker</button>
+        <button class="filter-btn" data-category="pdf">Invoice & QuestPDF</button>
+        <button class="filter-btn" data-category="idempotency">Idempotency Core</button>
+        <button class="filter-btn" data-category="payments">Payments API</button>
+        <button class="filter-btn" data-category="ci">CI/CD & DevOps</button>
+      </div>
+    </div>
+
+    <!-- Timeline of Releases -->
+    <main class="timeline" id="timeline-container">
+
+      <!-- Release v1.3.0 -->
+      <section class="release-section" data-categories="infra ci" id="v1-3-0">
+        <div class="timeline-node">
+          <div class="timeline-node-inner"></div>
+        </div>
+
+        <article class="release-card">
+          <header class="release-header">
+            <div class="release-title-area">
+              <div class="release-tag-row">
+                <span class="version-tag">v1.3.0</span>
+                <span class="tag-pill tag-latest">LATEST RELEASE</span>
+                <span class="tag-pill" style="background: rgba(99, 102, 241, 0.15); color: #a5b4fc;">Branch: feat/port-forward-test</span>
+              </div>
+              <h2 class="release-summary">Nginx Reverse Proxy, Container Packaging & CI Automation</h2>
+            </div>
+            <div class="release-date">Oct 09, 2026</div>
+          </header>
+
+          <div class="release-body">
+            <!-- Features in v1.3.0 -->
+            <div class="feature-category">
+              <div class="category-heading infra">
+                <span>⚡</span> Containerization & Traffic Routing
+              </div>
+              <ul class="feature-items-list">
+                <li class="feature-item">
+                  <div class="feature-bullet"></div>
+                  <div class="feature-content">
+                    <div class="feature-title">Nginx Reverse Proxy & Port Forwarding Configuration</div>
+                    <div class="feature-desc">
+                      Added upstream reverse proxy proxying incoming HTTP port 80 traffic to the internal C# API container (<code>api:8080</code>). Includes HTTP/1.1 keepalive (32 connections), client payload size limits (256k), and custom buffer optimizations (<code>proxy_buffers 8 64k</code>, <code>proxy_busy_buffers_size 128k</code>) explicitly tuned for streaming PDF invoice responses without choking I/O.
+                    </div>
+                    <div class="feature-tags">
+                      <span class="meta-tag">configs/nginx.conf</span>
+                      <span class="meta-tag">Port 80 -> 8080</span>
+                      <span class="meta-tag">Buffer Tuning</span>
+                    </div>
+                  </div>
+                </li>
+
+                <li class="feature-item">
+                  <div class="feature-bullet"></div>
+                  <div class="feature-content">
+                    <div class="feature-title">Multi-Stage Production Dockerfile & Service Orchestration</div>
+                    <div class="feature-desc">
+                      Authored an optimized multi-stage build Dockerfile based on <code>mcr.microsoft.com/dotnet/sdk:9.0</code> (build stage) and <code>mcr.microsoft.com/dotnet/aspnet:9.0</code> (distroless/chiseled lightweight runtime). Wired into <code>docker-compose.yml</code> alongside PostgreSQL 16 and Redis 7.
+                    </div>
+                    <div class="feature-tags">
+                      <span class="meta-tag">Dockerfile</span>
+                      <span class="meta-tag">.dockerignore</span>
+                      <span class="meta-tag">docker-compose.yml</span>
+                    </div>
+                  </div>
+                </li>
+
+                <li class="feature-item">
+                  <div class="feature-bullet"></div>
+                  <div class="feature-content">
+                    <div class="feature-title">Automated GitHub Actions CI Workflow</div>
+                    <div class="feature-desc">
+                      Configured automated GitHub workflow (<code>.github/workflows/package_builder.yml</code>) running on push and PRs to master. Sets up .NET 9.0.x SDK, executes <code>dotnet restore</code>, performs release compilation, and verifies Docker image build integrity via <code>docker build -t paymentgateway-api:test .</code>.
+                    </div>
+                    <div class="feature-tags">
+                      <span class="meta-tag">.github/workflows/package_builder.yml</span>
+                      <span class="meta-tag">ubuntu-latest</span>
+                      <span class="meta-tag">CI/CD</span>
+                    </div>
+                  </div>
+                </li>
+              </ul>
+            </div>
+
+            <!-- Commits -->
+            <div class="commits-box">
+              <button class="commits-toggle-btn" data-target="commits-v130">
+                <span>▶</span> View 1 commit in this release
+              </button>
+              <div class="commits-list" id="commits-v130">
+                <div class="commit-row">
+                  <span class="commit-msg">added nginx reverse proxy to forward port to c# localhost port number project</span>
+                  <span class="commit-hash" data-hash="a1ef81d" title="Click to copy hash">a1ef81d</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </article>
+      </section>
+
+      <!-- Release v1.2.0 -->
+      <section class="release-section" data-categories="pdf payments" id="v1-2-0">
+        <div class="timeline-node">
+          <div class="timeline-node-inner"></div>
+        </div>
+
+        <article class="release-card">
+          <header class="release-header">
+            <div class="release-title-area">
+              <div class="release-tag-row">
+                <span class="version-tag">v1.2.0</span>
+                <span class="tag-pill" style="background: rgba(244, 114, 182, 0.15); color: #f472b6;">QuestPDF & Invoicing</span>
+              </div>
+              <h2 class="release-summary">On-Demand QuestPDF Receipt Engine & Optional Transaction Invoicing</h2>
+            </div>
+            <div class="release-date">Oct 06 - Oct 07, 2026</div>
+          </header>
+
+          <div class="release-body">
+            <!-- Features in v1.2.0 -->
+            <div class="feature-category">
+              <div class="category-heading pdf">
+                <span>📄</span> Dynamic Document Generation
+              </div>
+              <ul class="feature-items-list">
+                <li class="feature-item">
+                  <div class="feature-bullet"></div>
+                  <div class="feature-content">
+                    <div class="feature-title">QuestPDF Fluent Receipt Generator</div>
+                    <div class="feature-desc">
+                      Integrated <code>QuestPDF</code> (v2024.12) community edition layout engine. Generates professional PDF invoices complete with merchant branding, billing details, line-item breakdowns, configurable accent colors, service tax calculation, and draft watermarks.
+                    </div>
+                    <div class="feature-tags">
+                      <span class="meta-tag">Features/Invoice/InvoiceService.cs</span>
+                      <span class="meta-tag">QuestPDF.Fluent</span>
+                      <span class="meta-tag">A4 Receipt Format</span>
+                    </div>
+                  </div>
+                </li>
+
+                <li class="feature-item">
+                  <div class="feature-bullet"></div>
+                  <div class="feature-content">
+                    <div class="feature-title">Multi-Tier Redis Document Caching (7-Day TTL)</div>
+                    <div class="feature-desc">
+                      Implemented intelligent caching layer using StackExchange.Redis. Hashes invoice request options using SHA-256 (<code>invoice:pdf:{paymentId}:{optionsHash}</code>) to return instant byte arrays on subsequent calls, saving CPU cycles on PDF compilation.
+                    </div>
+                    <div class="feature-tags">
+                      <span class="meta-tag">StackExchange.Redis</span>
+                      <span class="meta-tag">7-Day Expiry</span>
+                      <span class="meta-tag">SHA-256 Option Hashing</span>
+                    </div>
+                  </div>
+                </li>
+
+                <li class="feature-item">
+                  <div class="feature-bullet"></div>
+                  <div class="feature-content">
+                    <div class="feature-title">Optional Invoice Generation during Payment Creation</div>
+                    <div class="feature-desc">
+                      Enhanced <code>POST /v1/payments</code> payload with <code>generateInvoice: true</code> and optional custom <code>invoiceOptions</code>. Triggers non-blocking background task generation and returns a dynamic <code>download_url</code> (<code>/v1/payments/{chargeId}/invoice</code>) directly in the 201 Created response.
+                    </div>
+                    <div class="feature-tags">
+                      <span class="meta-tag">Features/Payment/PaymentEndpoints.cs</span>
+                      <span class="meta-tag">CreateChargeRequest</span>
+                      <span class="meta-tag">Background Task Worker</span>
+                    </div>
+                  </div>
+                </li>
+
+                <li class="feature-item">
+                  <div class="feature-bullet"></div>
+                  <div class="feature-content">
+                    <div class="feature-title">Dedicated PDF Download Endpoint</div>
+                    <div class="feature-desc">
+                      Added <code>GET /v1/payments/{id:guid}/invoice</code> with query parameter binding via <code>[AsParameters] InvoiceOptions</code>. Streams the generated PDF directly as <code>application/pdf</code> with friendly disposition filename.
+                    </div>
+                    <div class="feature-tags">
+                      <span class="meta-tag">Features/Invoice/InvoiceEndpoints.cs</span>
+                      <span class="meta-tag">application/pdf Stream</span>
+                      <span class="meta-tag">HTTP 200 OK</span>
+                    </div>
+                  </div>
+                </li>
+              </ul>
+            </div>
+
+            <!-- Code Preview -->
+            <div class="code-preview">
+              <span class="comment"># Example: Create payment with asynchronous invoice generation</span><br>
+              <code>$r = Invoke-RestMethod -Uri "http://localhost:5248/v1/payments" -Method Post -Headers @{"Content-Type"="application/json";"Idempotency-Key"=[guid]::NewGuid().ToString()} -Body '{"amount":2500,"currency":"MYR","customerEmail":"customer@example.com","generateInvoice":true}'</code><br>
+              <span class="comment"># Download generated invoice PDF</span><br>
+              <code>Invoke-WebRequest -Uri "http://localhost:5248$($r.invoice.download_url)" -OutFile "invoice.pdf"</code>
+            </div>
+
+            <!-- Commits -->
+            <div class="commits-box">
+              <button class="commits-toggle-btn" data-target="commits-v120">
+                <span>▶</span> View 5 commits in this release
+              </button>
+              <div class="commits-list" id="commits-v120">
+                <div class="commit-row">
+                  <span class="commit-msg">added invoice endpoint mapping for transactions with invoice as optional params payload</span>
+                  <span class="commit-hash" data-hash="64017ca" title="Click to copy hash">64017ca</span>
+                </div>
+                <div class="commit-row">
+                  <span class="commit-msg">added invoice endpoints to call invoice services to generate pdf invoice</span>
+                  <span class="commit-hash" data-hash="62a1b39" title="Click to copy hash">62a1b39</span>
+                </div>
+                <div class="commit-row">
+                  <span class="commit-msg">added readme and invoice service comments</span>
+                  <span class="commit-hash" data-hash="7db53d7" title="Click to copy hash">7db53d7</span>
+                </div>
+                <div class="commit-row">
+                  <span class="commit-msg">added pdf generator function with questpdf calls</span>
+                  <span class="commit-hash" data-hash="f8e6b83" title="Click to copy hash">f8e6b83</span>
+                </div>
+                <div class="commit-row">
+                  <span class="commit-msg">feat: add questpdf package and configure .gitignore</span>
+                  <span class="commit-hash" data-hash="211dd49" title="Click to copy hash">211dd49</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </article>
+      </section>
+
+      <!-- Release v1.1.0 -->
+      <section class="release-section" data-categories="payments idempotency" id="v1-1-0">
+        <div class="timeline-node">
+          <div class="timeline-node-inner"></div>
+        </div>
+
+        <article class="release-card">
+          <header class="release-header">
+            <div class="release-title-area">
+              <div class="release-tag-row">
+                <span class="version-tag">v1.1.0</span>
+                <span class="tag-pill" style="background: rgba(16, 185, 129, 0.15); color: #6ee7b7;">Payment Endpoints</span>
+              </div>
+              <h2 class="release-summary">Transaction Processing Route & Idempotency Integration</h2>
+            </div>
+            <div class="release-date">Oct 04 - Oct 05, 2026</div>
+          </header>
+
+          <div class="release-body">
+            <div class="feature-category">
+              <div class="category-heading core">
+                <span>💳</span> Payments Minimal API
+              </div>
+              <ul class="feature-items-list">
+                <li class="feature-item">
+                  <div class="feature-bullet"></div>
+                  <div class="feature-content">
+                    <div class="feature-title">POST /v1/payments Endpoint Implementation</div>
+                    <div class="feature-desc">
+                      Exposed the main payment charge endpoint taking <code>CreateChargeRequest</code> DTO with amount in minor currency units (cents), currency, customer email, and payment description.
+                    </div>
+                    <div class="feature-tags">
+                      <span class="meta-tag">POST /v1/payments</span>
+                      <span class="meta-tag">HTTP 201 Created</span>
+                    </div>
+                  </div>
+                </li>
+
+                <li class="feature-item">
+                  <div class="feature-bullet"></div>
+                  <div class="feature-content">
+                    <div class="feature-title">End-to-End Idempotency Lock Orchestration</div>
+                    <div class="feature-desc">
+                      Glued IdempotencyService with payment execution. Requests acquire atomic lock, execute the Postgres insert, mark idempotency as completed with HTTP status code and response body, and rollback status to <code>FAILED</code> on unhandled exceptions.
+                    </div>
+                    <div class="feature-tags">
+                      <span class="meta-tag">NpgsqlDataSource</span>
+                      <span class="meta-tag">FailAsync Fallback</span>
+                      <span class="meta-tag">Audit Timestamps</span>
+                    </div>
+                  </div>
+                </li>
+
+                <li class="feature-item">
+                  <div class="feature-bullet"></div>
+                  <div class="feature-content">
+                    <div class="feature-title">Vertical Slice Architecture Refactor</div>
+                    <div class="feature-desc">
+                      Streamlined feature folders under <code>Features/Payment</code>, <code>Features/Invoice</code>, and <code>Features/Idempotency</code>, adhering to Clean Vertical Slice design.
+                    </div>
+                    <div class="feature-tags">
+                      <span class="meta-tag">Refactoring</span>
+                      <span class="meta-tag">Clean Architecture</span>
+                    </div>
+                  </div>
+                </li>
+              </ul>
+            </div>
+
+            <!-- Commits -->
+            <div class="commits-box">
+              <button class="commits-toggle-btn" data-target="commits-v110">
+                <span>▶</span> View 3 commits in this release
+              </button>
+              <div class="commits-list" id="commits-v110">
+                <div class="commit-row">
+                  <span class="commit-msg">added payment test payload with corresponding logics</span>
+                  <span class="commit-hash" data-hash="2f739d8" title="Click to copy hash">2f739d8</span>
+                </div>
+                <div class="commit-row">
+                  <span class="commit-msg">TBC : function to call the idempotency key and perform finance transactions</span>
+                  <span class="commit-hash" data-hash="58513bd" title="Click to copy hash">58513bd</span>
+                </div>
+                <div class="commit-row">
+                  <span class="commit-msg">renamed files</span>
+                  <span class="commit-hash" data-hash="c1c5415" title="Click to copy hash">c1c5415</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </article>
+      </section>
+
+      <!-- Release v1.0.0 -->
+      <section class="release-section" data-categories="idempotency security" id="v1-0-0">
+        <div class="timeline-node">
+          <div class="timeline-node-inner"></div>
+        </div>
+
+        <article class="release-card">
+          <header class="release-header">
+            <div class="release-title-area">
+              <div class="release-tag-row">
+                <span class="version-tag">v1.0.0</span>
+                <span class="tag-pill" style="background: rgba(168, 85, 247, 0.15); color: #d8b4fe;">Idempotency Foundation</span>
+              </div>
+              <h2 class="release-summary">Fintech-Grade Idempotency Engine & PostgreSQL Schema</h2>
+            </div>
+            <div class="release-date">Oct 01 - Oct 02, 2026</div>
+          </header>
+
+          <div class="release-body">
+            <div class="feature-category">
+              <div class="category-heading security">
+                <span>🛡️</span> Concurrency & Integrity Control
+              </div>
+              <ul class="feature-items-list">
+                <li class="feature-item">
+                  <div class="feature-bullet"></div>
+                  <div class="feature-content">
+                    <div class="feature-title">Strict SHA-256 Request Fingerprinting</div>
+                    <div class="feature-desc">
+                      Every payload is hashed via SHA-256. If a client attempts to reuse an existing idempotency key with modified payload parameters, the API immediately rejects the call with <code>422 Unprocessable Entity</code>.
+                    </div>
+                    <div class="feature-tags">
+                      <span class="meta-tag">SHA-256 Hashing</span>
+                      <span class="meta-tag">HTTP 422</span>
+                      <span class="meta-tag">Tamper Protection</span>
+                    </div>
+                  </div>
+                </li>
+
+                <li class="feature-item">
+                  <div class="feature-bullet"></div>
+                  <div class="feature-content">
+                    <div class="feature-title">Atomic Locking & Duplicate Request Polling</div>
+                    <div class="feature-desc">
+                      Utilizes <code>INSERT ... ON CONFLICT DO NOTHING</code> in PostgreSQL. Concurrent requests for the same key poll the record with exponential backoff until completion or return <code>409 Conflict</code> upon timeout. Completed transactions replay their historical response with zero processing delay.
+                    </div>
+                    <div class="feature-tags">
+                      <span class="meta-tag">PostgreSQL ON CONFLICT</span>
+                      <span class="meta-tag">Polling Fallback</span>
+                      <span class="meta-tag">HTTP 409 Conflict</span>
+                    </div>
+                  </div>
+                </li>
+
+                <li class="feature-item">
+                  <div class="feature-bullet"></div>
+                  <div class="feature-content">
+                    <div class="feature-title">Database Migrations & Direct CLI Tooling (psql.ps1)</div>
+                    <div class="feature-desc">
+                      Authored <code>docker/init.sql</code> with indices, tables for <code>merchants</code>, <code>api_keys</code>, <code>payments</code>, and <code>idempotency_records</code>. Created a convenient PowerShell script (<code>psql.ps1</code>) for executing arbitrary SQL queries directly into the container.
+                    </div>
+                    <div class="feature-tags">
+                      <span class="meta-tag">docker/init.sql</span>
+                      <span class="meta-tag">psql.ps1</span>
+                      <span class="meta-tag">PostgreSQL 16</span>
+                    </div>
+                  </div>
+                </li>
+              </ul>
+            </div>
+
+            <!-- Commits -->
+            <div class="commits-box">
+              <button class="commits-toggle-btn" data-target="commits-v100">
+                <span>▶</span> View 3 commits in this release
+              </button>
+              <div class="commits-list" id="commits-v100">
+                <div class="commit-row">
+                  <span class="commit-msg">added update and delete idempotency records based on status</span>
+                  <span class="commit-hash" data-hash="8fb1088" title="Click to copy hash">8fb1088</span>
+                </div>
+                <div class="commit-row">
+                  <span class="commit-msg">added function to init the idempotency check on an api request</span>
+                  <span class="commit-hash" data-hash="bbbbb73" title="Click to copy hash">bbbbb73</span>
+                </div>
+                <div class="commit-row">
+                  <span class="commit-msg">added migration script init</span>
+                  <span class="commit-hash" data-hash="9de387b" title="Click to copy hash">9de387b</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </article>
+      </section>
+
+      <!-- Release v0.1.0 -->
+      <section class="release-section" data-categories="infra core" id="v0-1-0">
+        <div class="timeline-node">
+          <div class="timeline-node-inner"></div>
+        </div>
+
+        <article class="release-card">
+          <header class="release-header">
+            <div class="release-title-area">
+              <div class="release-tag-row">
+                <span class="version-tag">v0.1.0</span>
+                <span class="tag-pill" style="background: rgba(245, 158, 11, 0.15); color: #fbbf24;">Genesis</span>
+              </div>
+              <h2 class="release-summary">Project Scaffolding, Docker Compose & Data Models</h2>
+            </div>
+            <div class="release-date">Sep 30, 2026</div>
+          </header>
+
+          <div class="release-body">
+            <div class="feature-category">
+              <div class="category-heading core">
+                <span>🚀</span> Initial Architecture
+              </div>
+              <ul class="feature-items-list">
+                <li class="feature-item">
+                  <div class="feature-bullet"></div>
+                  <div class="feature-content">
+                    <div class="feature-title">.NET 9 Minimal API Setup</div>
+                    <div class="feature-desc">
+                      Bootstrap of ASP.NET Core on .NET 9 with modern C# 13 syntax, Nullable Reference Types, launch settings, and health check route at root.
+                    </div>
+                    <div class="feature-tags">
+                      <span class="meta-tag">Program.cs</span>
+                      <span class="meta-tag">.NET 9</span>
+                      <span class="meta-tag">C# 13</span>
+                    </div>
+                  </div>
+                </li>
+
+                <li class="feature-item">
+                  <div class="feature-bullet"></div>
+                  <div class="feature-content">
+                    <div class="feature-title">Multi-Service Docker Compose Setup</div>
+                    <div class="feature-desc">
+                      Composed PostgreSQL 16 (port 5431), Redis 7 (port 6379), and Nginx web server containers for unified local development.
+                    </div>
+                    <div class="feature-tags">
+                      <span class="meta-tag">docker-compose.yml</span>
+                      <span class="meta-tag">Redis 7</span>
+                      <span class="meta-tag">Postgres 16</span>
+                    </div>
+                  </div>
+                </li>
+
+                <li class="feature-item">
+                  <div class="feature-bullet"></div>
+                  <div class="feature-content">
+                    <div class="feature-title">Merchant & API Key Models and Service Stubs</div>
+                    <div class="feature-desc">
+                      Established C# records for merchants, API keys, and preliminary interfaces for webhooks, invoice generators, and payments.
+                    </div>
+                    <div class="feature-tags">
+                      <span class="meta-tag">Model/Database.cs</span>
+                      <span class="meta-tag">Webhook Stubs</span>
+                    </div>
+                  </div>
+                </li>
+              </ul>
+            </div>
+
+            <!-- Commits -->
+            <div class="commits-box">
+              <button class="commits-toggle-btn" data-target="commits-v010">
+                <span>▶</span> View 5 commits in this release
+              </button>
+              <div class="commits-list" id="commits-v010">
+                <div class="commit-row">
+                  <span class="commit-msg">added merchant and apikey record classes</span>
+                  <span class="commit-hash" data-hash="a6666f4" title="Click to copy hash">a6666f4</span>
+                </div>
+                <div class="commit-row">
+                  <span class="commit-msg">added docker compose for services</span>
+                  <span class="commit-hash" data-hash="12170f7" title="Click to copy hash">12170f7</span>
+                </div>
+                <div class="commit-row">
+                  <span class="commit-msg">added nginx and redis service compose</span>
+                  <span class="commit-hash" data-hash="6d76c35" title="Click to copy hash">6d76c35</span>
+                </div>
+                <div class="commit-row">
+                  <span class="commit-msg">added test scripts for services</span>
+                  <span class="commit-hash" data-hash="874bd08" title="Click to copy hash">874bd08</span>
+                </div>
+                <div class="commit-row">
+                  <span class="commit-msg">init project</span>
+                  <span class="commit-hash" data-hash="8208c86" title="Click to copy hash">8208c86</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </article>
+      </section>
+
+    </main>
+
+    <!-- Footer -->
+    <footer>
+      <div class="footer-links">
+        <a href="#v1-3-0">Latest Release (v1.3.0)</a>
+        <a href="./DOCUMENTATION.md">API Curl Examples</a>
+        <a href="./README.md">Full Architecture & Roadmap</a>
+      </div>
+      <p>PaymentGateway.Api • High-Performance .NET 9 Payment Engine • Maintained by Raziq Din</p>
+    </footer>
+  </div>
+
+  <!-- Toast Notification element -->
+  <div id="toast" role="status" aria-live="polite">Commit hash copied to clipboard!</div>
+
+  <script>
+    // Theme Toggle
+    const themeToggle = document.getElementById('theme-toggle');
+    const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+    let currentTheme = localStorage.getItem('theme') || (prefersDark ? 'dark' : 'dark');
+
+    function applyTheme(theme) {
+      document.documentElement.setAttribute('data-theme', theme);
+      localStorage.setItem('theme', theme);
+      themeToggle.textContent = theme === 'light' ? '🌙' : '☀️';
+    }
+
+    applyTheme(currentTheme);
+
+    themeToggle.addEventListener('click', () => {
+      currentTheme = currentTheme === 'light' ? 'dark' : 'light';
+      applyTheme(currentTheme);
+    });
+
+    // Toggle Commits List for individual sections
+    const toggleButtons = document.querySelectorAll('.commits-toggle-btn');
+    toggleButtons.forEach(btn => {
+      btn.addEventListener('click', () => {
+        const targetId = btn.getAttribute('data-target');
+        const list = document.getElementById(targetId);
+        if (list) {
+          const isOpen = list.classList.toggle('open');
+          const count = list.querySelectorAll('.commit-row').length;
+          btn.innerHTML = isOpen ? `▼ Hide ${count} commit${count > 1 ? 's' : ''}` : `▶ View ${count} commit${count > 1 ? 's' : ''}`;
+        }
+      });
+    });
+
+    // Expand / Collapse All Commits
+    const expandAllBtn = document.getElementById('btn-expand-all');
+    let allExpanded = false;
+    expandAllBtn.addEventListener('click', () => {
+      allExpanded = !allExpanded;
+      document.querySelectorAll('.commits-list').forEach(list => {
+        if (allExpanded) {
+          list.classList.add('open');
+        } else {
+          list.classList.remove('open');
+        }
+      });
+      toggleButtons.forEach(btn => {
+        const targetId = btn.getAttribute('data-target');
+        const list = document.getElementById(targetId);
+        if (list) {
+          const count = list.querySelectorAll('.commit-row').length;
+          btn.innerHTML = allExpanded ? `▼ Hide ${count} commit${count > 1 ? 's' : ''}` : `▶ View ${count} commit${count > 1 ? 's' : ''}`;
+        }
+      });
+      expandAllBtn.innerHTML = allExpanded ? '<span>📁</span> Collapse Commits' : '<span>📂</span> Expand Commits';
+    });
+
+    // Copy Commit Hash to Clipboard with Toast
+    const toast = document.getElementById('toast');
+    let toastTimeout;
+    function showToast(message) {
+      clearTimeout(toastTimeout);
+      toast.textContent = message;
+      toast.classList.add('show');
+      toastTimeout = setTimeout(() => {
+        toast.classList.remove('show');
+      }, 2500);
+    }
+
+    document.querySelectorAll('.commit-hash').forEach(el => {
+      el.addEventListener('click', () => {
+        const hash = el.getAttribute('data-hash');
+        if (navigator.clipboard && hash) {
+          navigator.clipboard.writeText(hash).then(() => {
+            showToast(`Commit ${hash} copied!`);
+          }).catch(() => {
+            showToast(`Selected commit: ${hash}`);
+          });
+        }
+      });
+    });
+
+    // Category Filter Buttons
+    const filterButtons = document.querySelectorAll('.filter-btn');
+    const sections = document.querySelectorAll('.release-section');
+
+    filterButtons.forEach(btn => {
+      btn.addEventListener('click', () => {
+        filterButtons.forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+
+        const category = btn.getAttribute('data-category');
+        sections.forEach(sec => {
+          if (category === 'all') {
+            sec.style.display = '';
+          } else {
+            const secCategories = sec.getAttribute('data-categories') || '';
+            if (secCategories.includes(category)) {
+              sec.style.display = '';
+            } else {
+              sec.style.display = 'none';
+            }
+          }
+        });
+      });
+    });
+
+    // Real-Time Search Filter
+    const searchInput = document.getElementById('search-input');
+    searchInput.addEventListener('input', (e) => {
+      const query = e.target.value.toLowerCase().trim();
+
+      sections.forEach(sec => {
+        const text = sec.textContent.toLowerCase();
+        if (!query || text.includes(query)) {
+          sec.style.display = '';
+        } else {
+          sec.style.display = 'none';
+        }
+      });
+    });
+  </script>
+</body>
+</html>
