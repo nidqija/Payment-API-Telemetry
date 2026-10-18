@@ -451,6 +451,8 @@
     .release-section:nth-child(4) .timeline-node-inner { background: var(--accent-emerald); }
     .release-section:nth-child(5) .timeline-node { border-color: var(--accent-amber); box-shadow: 0 0 12px var(--accent-amber-glow); }
     .release-section:nth-child(5) .timeline-node-inner { background: var(--accent-amber); }
+    .release-section:nth-child(6) .timeline-node { border-color: var(--accent-rose); box-shadow: 0 0 12px rgba(244, 63, 94, 0.3); }
+    .release-section:nth-child(6) .timeline-node-inner { background: var(--accent-rose); }
 
     .release-card {
       background: var(--bg-surface);
@@ -552,6 +554,8 @@
     .category-heading.pdf { color: #f472b6; }
     .category-heading.security { color: #34d399; }
     .category-heading.core { color: #fbbf24; }
+    .category-heading.observability { color: #38bdf8; }
+    .category-heading.ci { color: #c084fc; }
 
     .feature-items-list {
       list-style: none;
@@ -818,11 +822,14 @@
         <div class="hero-badge-row">
           <span class="badge badge-branch">
             <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="6" y1="3" x2="6" y2="15"></line><circle cx="18" cy="6" r="3"></circle><circle cx="6" cy="18" r="3"></circle><path d="M18 9a9 9 0 0 1-9 9"></path></svg>
-            feat/port-forward-test
+            feature/API-Tracing-Observe
           </span>
           <span class="badge badge-status">
             <span class="pulse-dot"></span>
             Production Ready
+          </span>
+          <span class="badge" style="background: rgba(6, 182, 212, 0.15); color: #38bdf8; border: 1px solid rgba(6, 182, 212, 0.3);">
+            OpenTelemetry Instrumented
           </span>
           <span class="badge" style="background: rgba(245, 158, 11, 0.15); color: #fbbf24; border: 1px solid rgba(245, 158, 11, 0.3);">
             QuestPDF Community Edition
@@ -841,23 +848,23 @@
       <div class="stats-ribbon">
         <div class="stat-card">
           <span class="stat-label">Milestones Released</span>
-          <span class="stat-value" id="stat-releases-count">5</span>
-          <span class="stat-detail">From v0.1.0 to v1.3.0</span>
+          <span class="stat-value" id="stat-releases-count">6</span>
+          <span class="stat-detail">From v0.1.0 to v1.4.0</span>
         </div>
         <div class="stat-card">
           <span class="stat-label">Total Commits</span>
-          <span class="stat-value" id="stat-commits-count">17</span>
+          <span class="stat-value" id="stat-commits-count">22</span>
           <span class="stat-detail">Authored by Raziq Din</span>
+        </div>
+        <div class="stat-card">
+          <span class="stat-label">Observability</span>
+          <span class="stat-value">OTel</span>
+          <span class="stat-detail">Distributed Tracing & Metrics</span>
         </div>
         <div class="stat-card">
           <span class="stat-label">Core Guarantees</span>
           <span class="stat-value">100%</span>
           <span class="stat-detail">Strict Exactly-Once Idempotency</span>
-        </div>
-        <div class="stat-card">
-          <span class="stat-label">Invoice Engine</span>
-          <span class="stat-value">7-Day</span>
-          <span class="stat-detail">Redis Multi-Tier Cached PDF</span>
         </div>
       </div>
     </header>
@@ -867,12 +874,13 @@
       <div class="search-row">
         <div class="search-input-box">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
-          <input type="text" id="search-input" class="search-input" placeholder="Search features, commits, endpoints, keywords (e.g. nginx, questpdf, idempotency)..." />
+          <input type="text" id="search-input" class="search-input" placeholder="Search features, commits, endpoints, keywords (e.g. otel, nginx, questpdf, idempotency)..." />
         </div>
       </div>
 
       <div class="filter-tags" id="filter-container">
         <button class="filter-btn active" data-category="all">All Releases</button>
+        <button class="filter-btn" data-category="observability">Observability & Tracing</button>
         <button class="filter-btn" data-category="infra">Proxy & Docker</button>
         <button class="filter-btn" data-category="pdf">Invoice & QuestPDF</button>
         <button class="filter-btn" data-category="idempotency">Idempotency Core</button>
@@ -883,6 +891,196 @@
 
     <!-- Timeline of Releases -->
     <main class="timeline" id="timeline-container">
+
+      <!-- Release v1.4.0 -->
+      <section class="release-section" data-categories="observability infra ci" id="v1-4-0">
+        <div class="timeline-node">
+          <div class="timeline-node-inner"></div>
+        </div>
+
+        <article class="release-card">
+          <header class="release-header">
+            <div class="release-title-area">
+              <div class="release-tag-row">
+                <span class="version-tag">v1.4.0</span>
+                <span class="tag-pill tag-latest">LATEST RELEASE</span>
+                <span class="tag-pill" style="background: rgba(6, 182, 212, 0.15); color: #38bdf8;">Branch: feature/API-Tracing-Observe</span>
+              </div>
+              <h2 class="release-summary">OpenTelemetry Distributed Tracing, Observability Pipeline & Automated Dev Releases</h2>
+            </div>
+            <div class="release-date">Oct 09 - Oct 18, 2026</div>
+          </header>
+
+          <div class="release-body">
+            <!-- Features in v1.4.0 -->
+            <div class="feature-category">
+              <div class="category-heading observability">
+                <span>🔭</span> OpenTelemetry Tracing & Domain Metrics
+              </div>
+              <ul class="feature-items-list">
+                <li class="feature-item">
+                  <div class="feature-bullet" style="background: var(--accent-cyan);"></div>
+                  <div class="feature-content">
+                    <div class="feature-title">End-to-End OpenTelemetry SDK & OTLP Exporter Integration</div>
+                    <div class="feature-desc">
+                      Integrated official OpenTelemetry runtime packages (<code>OpenTelemetry.Extensions.Hosting</code>, <code>OpenTelemetry.Exporter.OpenTelemetryProtocol</code>, <code>OpenTelemetry.Instrumentation.AspNetCore</code>, <code>OpenTelemetry.Instrumentation.Http</code>, and <code>Npgsql.OpenTelemetry</code>). Registered unified <code>PaymentGateway.Api</code> service identity and configured OTLP export via gRPC to <code>http://otel:4317</code>. Automatically suppresses noisy background polling on <code>/health</code> and <code>/dashboard</code> endpoints to guarantee high-signal telemetry.
+                    </div>
+                    <div class="feature-tags">
+                      <span class="meta-tag">Program.cs</span>
+                      <span class="meta-tag">OpenTelemetry.Trace</span>
+                      <span class="meta-tag">Npgsql.OpenTelemetry</span>
+                      <span class="meta-tag">OTLP gRPC :4317</span>
+                    </div>
+                  </div>
+                </li>
+
+                <li class="feature-item">
+                  <div class="feature-bullet" style="background: var(--accent-cyan);"></div>
+                  <div class="feature-content">
+                    <div class="feature-title">Domain Performance Metrics via System.Diagnostics.Metrics</div>
+                    <div class="feature-desc">
+                      Built static <code>ApiTracingService</code> exposing a dedicated <code>PaymentGateway.Core</code> Meter. Tracks throughput via <code>payment.processed.count</code> (Counter), measures cache efficiency via <code>invoice.cache.hit.count</code> and <code>invoice.cache.miss.count</code> (Counters), and records granular PDF generation latencies with <code>invoice.render.duration_ms</code> and <code>invoice.render.amount_ms</code> (Histograms).
+                    </div>
+                    <div class="feature-tags">
+                      <span class="meta-tag">Features/Observability/ApiTracingService.cs</span>
+                      <span class="meta-tag">System.Diagnostics.Metrics</span>
+                      <span class="meta-tag">Counters & Histograms</span>
+                    </div>
+                  </div>
+                </li>
+
+                <li class="feature-item">
+                  <div class="feature-bullet" style="background: var(--accent-cyan);"></div>
+                  <div class="feature-content">
+                    <div class="feature-title">Fine-Grained Activity Tracing & Events in Invoice Engine</div>
+                    <div class="feature-desc">
+                      Instrumented <code>InvoiceService.GetOrGenerateInvoicePdf</code> using <code>ActivitySource.StartActivity("GetOrGenerateInvoicePdf")</code>. Injects semantic tags (<code>payment.id</code>, <code>cache.hit</code>, <code>invoice.size_bytes</code>, <code>pdf.render.duration_ms</code>), emits chronological activity events (<code>redis_cache_lookup_started</code>, <code>pdf_generation_started</code>), and sets explicit <code>ActivityStatusCode.Ok</code> / <code>Error</code> statuses for end-to-end distributed trace tracking across Redis and PostgreSQL.
+                    </div>
+                    <div class="feature-tags">
+                      <span class="meta-tag">Features/Invoice/InvoiceService.cs</span>
+                      <span class="meta-tag">ActivitySource</span>
+                      <span class="meta-tag">Span Tagging</span>
+                      <span class="meta-tag">Stopwatch Timing</span>
+                    </div>
+                  </div>
+                </li>
+              </ul>
+            </div>
+
+            <div class="feature-category">
+              <div class="category-heading infra">
+                <span>🐳</span> Telemetry Infrastructure & Orchestration
+              </div>
+              <ul class="feature-items-list">
+                <li class="feature-item">
+                  <div class="feature-bullet"></div>
+                  <div class="feature-content">
+                    <div class="feature-title">OpenTelemetry Collector Service & Multi-Port Networking</div>
+                    <div class="feature-desc">
+                      Integrated <code>otel/opentelemetry-collector-contrib:latest</code> into <code>docker-compose.yml</code>. Exposes OTLP gRPC (<code>4317</code>), OTLP HTTP (<code>4318</code>), Prometheus internal metrics (<code>8888</code>), and health check (<code>13133</code>) ports. Authored <code>configs/otel-collector-config.yaml</code> with batch processing pipelines (1s timeout, 256 batch size) and detailed debug exporters.
+                    </div>
+                    <div class="feature-tags">
+                      <span class="meta-tag">docker-compose.yml</span>
+                      <span class="meta-tag">configs/otel-collector-config.yaml</span>
+                      <span class="meta-tag">OTel Collector Contrib</span>
+                    </div>
+                  </div>
+                </li>
+
+                <li class="feature-item">
+                  <div class="feature-bullet"></div>
+                  <div class="feature-content">
+                    <div class="feature-title">Nginx Reverse Proxy Architecture & Tuning Annotations</div>
+                    <div class="feature-desc">
+                      Documented <code>configs/nginx.conf</code> with inline explanations for reverse proxy routing, keepalive connection pooling (32 connections), 10-second client timeouts, standard reverse proxy forwarding headers, and custom buffer allocations specifically sized for QuestPDF document transmission.
+                    </div>
+                    <div class="feature-tags">
+                      <span class="meta-tag">configs/nginx.conf</span>
+                      <span class="meta-tag">Reverse Proxy Tuning</span>
+                      <span class="meta-tag">Keepalive & Buffers</span>
+                    </div>
+                  </div>
+                </li>
+              </ul>
+            </div>
+
+            <div class="feature-category">
+              <div class="category-heading ci">
+                <span>🚀</span> Developer Release Automation & CI/CD
+              </div>
+              <ul class="feature-items-list">
+                <li class="feature-item">
+                  <div class="feature-bullet" style="background: var(--accent-purple);"></div>
+                  <div class="feature-content">
+                    <div class="feature-title">Automated Dev Release Pipeline via GitHub Actions</div>
+                    <div class="feature-desc">
+                      Created <code>.github/workflows/dev_release.yml</code> running on merges to <code>master</code>. Automates .NET 9 compilation, binary zip packaging (<code>paymentgateway-api-{version}.zip</code>), Docker dual-tag builds (<code>:dev</code> and <code>:{version}</code>), and seamless GitHub Release generation with release notes.
+                    </div>
+                    <div class="feature-tags">
+                      <span class="meta-tag">.github/workflows/dev_release.yml</span>
+                      <span class="meta-tag">GitHub Actions</span>
+                      <span class="meta-tag">Docker Packaging</span>
+                    </div>
+                  </div>
+                </li>
+
+                <li class="feature-item">
+                  <div class="feature-bullet" style="background: var(--accent-purple);"></div>
+                  <div class="feature-content">
+                    <div class="feature-title">Dynamic Release Notes Generator Tooling</div>
+                    <div class="feature-desc">
+                      Built <code>scripts/generate_release_notes.py</code> to dynamically parse the latest release section from <code>CHANGELOG.html</code>, generating formatted <code>RELEASE_NOTES.md</code> and setting GITHUB_OUTPUT environment values for release jobs.
+                    </div>
+                    <div class="feature-tags">
+                      <span class="meta-tag">scripts/generate_release_notes.py</span>
+                      <span class="meta-tag">RELEASE_NOTES.md</span>
+                      <span class="meta-tag">Python 3</span>
+                    </div>
+                  </div>
+                </li>
+              </ul>
+            </div>
+
+            <!-- Code Preview -->
+            <div class="code-preview">
+              <span class="comment"># OpenTelemetry Tracing & Metrics Setup in Program.cs</span><br>
+              <code>builder.Services.AddOpenTelemetry()</code><br>
+              <code>&nbsp;&nbsp;.ConfigureResource(r => r.AddService("PaymentGateway.Api", "1.0.0"))</code><br>
+              <code>&nbsp;&nbsp;.WithTracing(t => t.AddSource("PaymentGateway.Core").AddAspNetCoreInstrumentation().AddNpgsql().AddOtlpExporter())</code><br>
+              <code>&nbsp;&nbsp;.WithMetrics(m => m.AddMeter("PaymentGateway.Core").AddAspNetCoreInstrumentation().AddOtlpExporter());</code>
+            </div>
+
+            <!-- Commits -->
+            <div class="commits-box">
+              <button class="commits-toggle-btn" data-target="commits-v140">
+                <span>▶</span> View 5 commits in this release
+              </button>
+              <div class="commits-list" id="commits-v140">
+                <div class="commit-row">
+                  <span class="commit-msg">added new port expose to docker compose and refined code structure via comment as explanation for otel service</span>
+                  <span class="commit-hash" data-hash="70d7232" title="Click to copy hash">70d7232</span>
+                </div>
+                <div class="commit-row">
+                  <span class="commit-msg">added otel config on program mount file and defined metric variables for tracing</span>
+                  <span class="commit-hash" data-hash="51f80c6" title="Click to copy hash">51f80c6</span>
+                </div>
+                <div class="commit-row">
+                  <span class="commit-msg">added comments on nginx config and init file for ApiTracingServices</span>
+                  <span class="commit-hash" data-hash="00a6846" title="Click to copy hash">00a6846</span>
+                </div>
+                <div class="commit-row">
+                  <span class="commit-msg">fix: resolve yaml syntax error by externalizing release notes generator script</span>
+                  <span class="commit-hash" data-hash="a1c8a72" title="Click to copy hash">a1c8a72</span>
+                </div>
+                <div class="commit-row">
+                  <span class="commit-msg">added dev release github action scripts</span>
+                  <span class="commit-hash" data-hash="a42e748" title="Click to copy hash">a42e748</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </article>
+      </section>
 
       <!-- Release v1.3.0 -->
       <section class="release-section" data-categories="infra ci" id="v1-3-0">
@@ -895,7 +1093,6 @@
             <div class="release-title-area">
               <div class="release-tag-row">
                 <span class="version-tag">v1.3.0</span>
-                <span class="tag-pill tag-latest">LATEST RELEASE</span>
                 <span class="tag-pill" style="background: rgba(99, 102, 241, 0.15); color: #a5b4fc;">Branch: feat/port-forward-test</span>
               </div>
               <h2 class="release-summary">Nginx Reverse Proxy, Container Packaging & CI Automation</h2>
@@ -1395,7 +1592,7 @@
     <!-- Footer -->
     <footer>
       <div class="footer-links">
-        <a href="#v1-3-0">Latest Release (v1.3.0)</a>
+        <a href="#v1-4-0">Latest Release (v1.4.0)</a>
         <a href="./DOCUMENTATION.md">API Curl Examples</a>
         <a href="./README.md">Full Architecture & Roadmap</a>
       </div>
