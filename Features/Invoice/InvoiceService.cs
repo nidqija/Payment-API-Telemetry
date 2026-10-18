@@ -5,6 +5,9 @@ using StackExchange.Redis;
 using QuestPDF.Fluent;
 using QuestPDF.Helpers;
 using QuestPDF.Infrastructure;
+using Features.Observability;
+using System.Diagnostics;
+
 
 
 namespace Features.Invoice;
@@ -145,14 +148,31 @@ public class InvoiceService(IConnectionMultiplexer redis , NpgsqlDataSource data
         CancellationToken ct = default
     )
     {
+
+        // we use activity source to trace the execution of this function
+        // this is useful for debugging and performance monitoring
+        // we set the payment id as a tag to the activity source for easy identification of the trace
+        using var activity = ApiTracingService.ActivitySource.StartActivity("GetOrGenerateInvoicePdf");
+
+        activity?.SetTag("payment.id" , paymentId.ToString());
+
+
+
         // compute the option hash code
         string optionHash = ComputeOptionsHash(invoiceOptions);
 
         // create the cache key for redis 
         string cachedKey = $"cache:pdf:{paymentId}:{optionHash}";
 
+        // ========== REDIS CACHE LOOKUP ========== OPERATION 1 
+        // we add an activiy event to indicate that we are starting to look up the redis cache for the pdf
+        activity?.AddEvent(new ActivityEvent("redis_cache_lookup_started"));
+
+
         // retrieve the pdf from redis cache first
         byte[]? cachePdf = await _redis.StringGetAsync(cachedKey);
+
+        
 
 
         // if pdf is found , return it immediately 
@@ -160,9 +180,23 @@ public class InvoiceService(IConnectionMultiplexer redis , NpgsqlDataSource data
         // and reduce the constant poll on the database
         if(cachePdf is not null && cachePdf.Length > 0)
         {
+
+            // set the activity tag to indicate that the pdf was found in cache
+            activity?.SetTag("cache.hit" , true);
+
+            // set an activity tag to indicate the size of the pdf in bytes
+            activity?.SetTag("invoice.size_bytes" , cachePdf.Length);
+
+            // set the activity status to ok to indicate that the operation was successful
+            // write back to the console that the pdf was retrieved from cache
+            activity?.SetStatus(ActivityStatusCode.Ok);
+
             Console.WriteLine("Retrieved PDF from cache!");
             return cachePdf;
         }
+
+        // set an activity tag to indicate that the pdf was not found in cache
+        activity?.SetTag("cache.hit" , false);
 
         // if pdf is not found in cache , retrieve from db instead
         // init query for payment invoice payload
@@ -216,17 +250,37 @@ public class InvoiceService(IConnectionMultiplexer redis , NpgsqlDataSource data
         // if the data record is empty , return null back to the client
         if(data is null)
         {
+            // set the activity status to error to indicate that the operation failed
+            activity?.SetStatus(ActivityStatusCode.Error, "Payment record not found or not successful");
             return null;
         }
 
+
+        // ========== PDF GENERATION ========== OPERATION 2
+        // add an activity event to indicate that we are starting to generate the pdf
+        activity?.AddEvent(new ActivityEvent("pdf_generation_started"));
+        var stopwatch = Stopwatch.StartNew();
+
         // call the pdf helper function to retrieve the pdf generated
         byte[] pdfBytes = GeneratePdfDocument(data , invoiceOptions);
+
+        // add an activity event to indicate that we have completed the pdf generation
+        stopwatch.Stop();
+
+        ApiTracingService.InvoiceRenderDuration.Record(stopwatch.Elapsed.TotalMilliseconds);
+
+        // set the activity tags to indicate the duration of the pdf generation 
+        // and the size of the pdf in bytes
+        activity?.SetTag("pdf.render.duration_ms" , stopwatch.Elapsed.TotalMilliseconds);
+        activity?.SetTag("invoice.size_bytes" , pdfBytes.Length);
 
         // store the generated pdf in redis cache
         // can be used for future requests
         await _redis.StringSetAsync(cachedKey, pdfBytes, TimeSpan.FromDays(7));
 
         // return the pdfbyte code
+        // set the status of the activity to ok to indicate that the operation was successful
+        activity?.SetStatus(ActivityStatusCode.Ok);
         return pdfBytes;
 
     }
