@@ -65,10 +65,26 @@ CREATE TABLE IF NOT EXISTS idempotency_records (
 );
 
 
+CREATE TABLE IF NOT EXISTS webhook_callback (
+        id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+        payment_id UUID NOT NULL REFERENCES payments(id) ON DELETE CASCADE,
+        target_url TEXT NOT NULL,
+        event_type VARCHAR(50) NOT NULL,
+        payload JSONB NOT NULL,
+        http_status_code TEXT NOT NULL, -- the http status code of the response from the merchant
+        request_headers JSONB NOT NULL,
+        response_body TEXT,
+        delivered_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+        duration_ms BIGINT
+
+);
+
+
 CREATE INDEX IF NOT EXISTS idx_idem_merchant_lookup ON idempotency_records(merchant_id , idempotency_key); -- index to speed up the lookup of idempotency records by merchant_id and idempotency_key
 CREATE INDEX IF NOT EXISTS idx_idem_payment_lookup ON idempotency_records(payment_id , idempotency_key); -- index to speed up the lookup of idempotency records by payment_id
 CREATE INDEX IF NOT EXISTS idx_idem_expires_at ON idempotency_records(expires_at) WHERE status = 'COMPLETED'; -- index to speed up the lookup of expired idempotency records that are completed
-
+CREATE INDEX IF NOT EXISTS idx_webhook_deliveries_payment_id ON webhook_callback(payment_id); -- index to speed up searching of webhook deliveries by payment_id
+CREATE INDEX IF NOT EXISTS idx_webhook_deliveries_created_at ON webhook_callback(delivered_at); -- index to speed up the lookup of webhook deliveries according to delivered at column
 
 INSERT INTO merchants (id, name, email, webhook_url, webhook_secret)
 VALUES (
