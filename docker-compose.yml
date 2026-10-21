@@ -18,6 +18,13 @@ services:
         ports:
             - 127.0.0.1:5248:8080
         restart: unless-stopped
+    cloudflared:
+        command: tunnel --no-autoupdate --url http://host.docker.internal:8025
+        container_name: standalone_cloudflared
+        extra_hosts:
+            - host.docker.internal:host-gateway
+        image: cloudflare/cloudflared:latest
+        restart: unless-stopped
     nginx:
         depends_on:
             - api
@@ -27,6 +34,7 @@ services:
         restart: unless-stopped
         volumes:
             - ./configs/nginx.conf:/etc/nginx/conf.d/default.conf:ro
+            - ./html:/usr/share/nginx/html:ro # mount the html file to nginx , this is under a html folder that is prepared by nginx
     otel:
         command:
             - --config=/etc/otelcol-contrib/config.yaml
