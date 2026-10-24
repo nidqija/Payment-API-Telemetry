@@ -55,7 +55,7 @@ public class WebhookDispatch ( HttpClient httpClient , NpgsqlDataSource npgsql )
         request.Content = new StringContent(json , Encoding.UTF8 , "application/json");
 
         // add signature and event type to webhook request headers
-        request.Headers.Add("X-Signature" , signature);
+        request.Headers.Add("X-Signature" , Signature);
         request.Headers.Add("X-Event-Type" , webhookPayload.EventType);
 
 
@@ -67,8 +67,74 @@ public class WebhookDispatch ( HttpClient httpClient , NpgsqlDataSource npgsql )
             ["Content-Type"] = "application/json"
         };
 
+        // convert headers dictionary into json to be stored in the database
+        string headerJson = JsonSerializer.Serialize(headerDistrict);
 
-// TODO : ADD DELAY IN BETWEEN REQUESTS
-       return headerDistrict;
+        // init a stopwatch counter , status code and responsebody
+        var sw = Stopwatch.StartNew();
+        int statusCode = 0;
+        string responseBody = string.Empty;
+
+        try
+        {
+            // start sending webhook to merchant endpoint
+            using var response = await httpClient.SendAsync(request , ct);
+
+            // get status code and response body
+            statusCode = (int)response.StatusCode;
+            responseBody = await response.Content.ReadAsStringAsync(ct);
+
+            // if response body is too long , truncate it to 1000 characters
+            if (responseBody.Length > 1000)
+            {
+                responseBody = responseBody[..1000];
+            }
+        } catch (Exception ex)
+        {
+            // if any exception occured , set status code to 504 and store the error message
+            statusCode = 504;
+            responseBody = $"Delivery failed:{ex.Message}";
+        }
+
+        finally
+        {
+            // stop the stopwatch and record the duration
+            sw.Stop();
+        }
+
+
+        // init a sql command to perform database transaction
+        const string insertSql = """
+            INSERT INTO webhook_callback (
+                payment_id,
+                target_url,
+                event_type,
+                payload,
+                http_status_code,
+                request_headers,
+                response_body,
+                duration_ms,
+                delivered_at
+            ) VALUES (
+                $1, $2, $3, $4::jsonb, $5, $6::jsonb, $7, $8, NOW()
+            );
+        """;
+
+        // init a connection to postgres to perform transaction
+        await using var conn = await npgsql.OpenConnectionAsync(ct);
+        await using var cmd = new NpgsqlCommand(insertSql , conn);
+
+        // add parameters to sql command
+        cmd.Parameters.AddWithValue(PaymentId);
+        cmd.Parameters.AddWithValue(TargetUrl);
+        cmd.Parameters.AddWithValue(webhookPayload.EventType);
+        cmd.Parameters.AddWithValue(json);
+        cmd.Parameters.AddWithValue(statusCode);
+        cmd.Parameters.AddWithValue(headerJson);
+        cmd.Parameters.AddWithValue(responseBody);
+        cmd.Parameters.AddWithValue(sw.ElapsedMilliseconds);
+
+        // execute the sql command to insert webhook callback into database
+        await cmd.ExecuteNonQueryAsync(ct);
     }
 }

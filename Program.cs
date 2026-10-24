@@ -8,6 +8,7 @@ using Features.Invoice;
 using OpenTelemetry.Resources;
 using OpenTelemetry.Trace;
 using OpenTelemetry.Metrics;
+using Features.Webhook;
 
 DotEnv.Load();
 
@@ -35,6 +36,11 @@ var serviceVersion = "1.0.0";
 builder.Services.AddSingleton(NpgsqlDataSource.Create(connectionString));
 builder.Services.AddSingleton<IConnectionMultiplexer>(
     ConnectionMultiplexer.Connect(redisConnectionString)
+);
+
+// register webhook dispatch service to program
+builder.Services.AddHttpClient<WebhookDispatch>(client =>
+   client.Timeout = TimeSpan.FromSeconds(10)
 );
 
 
