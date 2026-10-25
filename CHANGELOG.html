@@ -822,7 +822,7 @@
         <div class="hero-badge-row">
           <span class="badge badge-branch">
             <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="6" y1="3" x2="6" y2="15"></line><circle cx="18" cy="6" r="3"></circle><circle cx="6" cy="18" r="3"></circle><path d="M18 9a9 9 0 0 1-9 9"></path></svg>
-            feature/API-Tracing-Observe
+            feature/Webhook-Callback-Url
           </span>
           <span class="badge badge-status">
             <span class="pulse-dot"></span>
@@ -848,12 +848,12 @@
       <div class="stats-ribbon">
         <div class="stat-card">
           <span class="stat-label">Milestones Released</span>
-          <span class="stat-value" id="stat-releases-count">6</span>
-          <span class="stat-detail">From v0.1.0 to v1.4.0</span>
+          <span class="stat-value" id="stat-releases-count">7</span>
+          <span class="stat-detail">From v0.1.0 to v1.5.0</span>
         </div>
         <div class="stat-card">
           <span class="stat-label">Total Commits</span>
-          <span class="stat-value" id="stat-commits-count">22</span>
+          <span class="stat-value" id="stat-commits-count">26</span>
           <span class="stat-detail">Authored by Raziq Din</span>
         </div>
         <div class="stat-card">
@@ -874,12 +874,13 @@
       <div class="search-row">
         <div class="search-input-box">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
-          <input type="text" id="search-input" class="search-input" placeholder="Search features, commits, endpoints, keywords (e.g. otel, nginx, questpdf, idempotency)..." />
+          <input type="text" id="search-input" class="search-input" placeholder="Search features, commits, endpoints, keywords (e.g. otel, nginx, questpdf, idempotency, webhook)..." />
         </div>
       </div>
 
       <div class="filter-tags" id="filter-container">
         <button class="filter-btn active" data-category="all">All Releases</button>
+        <button class="filter-btn" data-category="webhooks">Webhooks & Callbacks</button>
         <button class="filter-btn" data-category="observability">Observability & Tracing</button>
         <button class="filter-btn" data-category="infra">Proxy & Docker</button>
         <button class="filter-btn" data-category="pdf">Invoice & QuestPDF</button>
@@ -892,6 +893,114 @@
     <!-- Timeline of Releases -->
     <main class="timeline" id="timeline-container">
 
+      <!-- Release v1.5.0 -->
+      <section class="release-section" data-categories="webhooks infra payments" id="v1-5-0">
+        <div class="timeline-node">
+          <div class="timeline-node-inner"></div>
+        </div>
+
+        <article class="release-card">
+          <header class="release-header">
+            <div class="release-title-area">
+              <div class="release-tag-row">
+                <span class="version-tag">v1.5.0</span>
+                <span class="tag-pill tag-latest">LATEST RELEASE</span>
+                <span class="tag-pill" style="background: rgba(16, 185, 129, 0.15); color: #34d399;">Branch: feature/Webhook-Callback-Url</span>
+              </div>
+              <h2 class="release-summary">Merchant Webhook Callback Engine, Live Polling Dashboard & Dynamic Cloudflare Ingress Resolution</h2>
+            </div>
+            <div class="release-date">Oct 25, 2026</div>
+          </header>
+
+          <div class="release-body">
+            <!-- Features in v1.5.0 -->
+            <div class="feature-category">
+              <div class="category-heading security">
+                <span>🔔</span> Webhook Callback Engine & Delivery Pipeline
+              </div>
+              <ul class="feature-items-list">
+                <li class="feature-item">
+                  <div class="feature-bullet" style="background: var(--accent-emerald);"></div>
+                  <div class="feature-content">
+                    <div class="feature-title">Asynchronous Merchant Webhook Delivery with HMAC-SHA256 Signatures</div>
+                    <div class="feature-desc">
+                      Built the <code>WebhookDispatch</code> service using typed <code>HttpClient</code> to deliver cryptographically signed webhook notifications (<code>X-Signature</code> with HMAC-SHA256, <code>X-Event-Type</code>) upon payment completion. Automatically logs delivery duration, HTTP status code, request headers, payload, and response bodies into PostgreSQL's <code>webhook_callback</code> table for full delivery auditability.
+                    </div>
+                    <div class="feature-tags">
+                      <span class="meta-tag">Features/Webhook/WebhookDispatch.cs</span>
+                      <span class="meta-tag">HMAC-SHA256</span>
+                      <span class="meta-tag">PostgreSQL webhook_callback</span>
+                    </div>
+                  </div>
+                </li>
+
+                <li class="feature-item">
+                  <div class="feature-bullet" style="background: var(--accent-emerald);"></div>
+                  <div class="feature-content">
+                    <div class="feature-title">Dynamic Ingress & Ephemeral Cloudflare Tunnel Resolution</div>
+                    <div class="feature-desc">
+                      Resolved runtime ingress mapping by mounting <code>./configs:/app/configs:ro</code> into the API container. Dynamically reads active <code>APP_BASE_URL</code> from <code>configs/.env</code> on request to support ephemeral Cloudflare Tunnel endpoints without container rebuilds or stale boot-time environment variables. Safely falls back to internal <code>http://nginx:80</code> for container-to-container routing.
+                    </div>
+                    <div class="feature-tags">
+                      <span class="meta-tag">Features/Payment/PaymentEndpoints.cs</span>
+                      <span class="meta-tag">docker-compose.yml</span>
+                      <span class="meta-tag">Cloudflare Tunnel Ingress</span>
+                    </div>
+                  </div>
+                </li>
+
+                <li class="feature-item">
+                  <div class="feature-bullet" style="background: var(--accent-emerald);"></div>
+                  <div class="feature-content">
+                    <div class="feature-title">Live Webhook Deliveries Dashboard & Polling API</div>
+                    <div class="feature-desc">
+                      Implemented <code>GET /v1/webhooks</code> to fetch recent deliveries and created an interactive, dark-themed real-time monitoring page (<code>/webhooks</code> via Nginx) with automatic 2-second live polling, status badge indicators (<code>status-2xx</code>, <code>status-err</code>), formatted JSON payloads, and delivery latency metrics. Added <code>POST /test-webhook</code> mock receiver endpoint for zero-dependency end-to-end verification.
+                    </div>
+                    <div class="feature-tags">
+                      <span class="meta-tag">html/logs_page.html</span>
+                      <span class="meta-tag">Features/Webhook/WebhookEndpoints.cs</span>
+                      <span class="meta-tag">GET /v1/webhooks</span>
+                      <span class="meta-tag">POST /test-webhook</span>
+                    </div>
+                  </div>
+                </li>
+              </ul>
+            </div>
+
+            <!-- Code Preview -->
+            <div class="code-preview">
+              <span class="comment">// Delivering signed webhook event asynchronously upon payment completion</span><br>
+              <code>await webhookDispatcher.DeliverAsync(chargeId, webhookUrl, webhookSecret, webhookPayload, CancellationToken.None);</code>
+            </div>
+
+            <!-- Commits -->
+            <div class="commits-box">
+              <button class="commits-toggle-btn" data-target="commits-v150">
+                <span>▶</span> View 4 commits in this release
+              </button>
+              <div class="commits-list" id="commits-v150">
+                <div class="commit-row">
+                  <span class="commit-msg">feat(webhook): add webhook callback dispatch, logging dashboard, and dynamic tunnel resolution</span>
+                  <span class="commit-hash" data-hash="92c93a5" title="Click to copy hash">92c93a5</span>
+                </div>
+                <div class="commit-row">
+                  <span class="commit-msg">added webhook callback insertion upon completed payment transactions</span>
+                  <span class="commit-hash" data-hash="e0c9e4f" title="Click to copy hash">e0c9e4f</span>
+                </div>
+                <div class="commit-row">
+                  <span class="commit-msg">added webhook dispatch and sql transactions for webhook operations</span>
+                  <span class="commit-hash" data-hash="ba19425" title="Click to copy hash">ba19425</span>
+                </div>
+                <div class="commit-row">
+                  <span class="commit-msg">added callback url dispatch load init</span>
+                  <span class="commit-hash" data-hash="70dd0c9" title="Click to copy hash">70dd0c9</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </article>
+      </section>
+
       <!-- Release v1.4.0 -->
       <section class="release-section" data-categories="observability infra ci" id="v1-4-0">
         <div class="timeline-node">
@@ -903,7 +1012,6 @@
             <div class="release-title-area">
               <div class="release-tag-row">
                 <span class="version-tag">v1.4.0</span>
-                <span class="tag-pill tag-latest">LATEST RELEASE</span>
                 <span class="tag-pill" style="background: rgba(6, 182, 212, 0.15); color: #38bdf8;">Branch: feature/API-Tracing-Observe</span>
               </div>
               <h2 class="release-summary">OpenTelemetry Distributed Tracing, Observability Pipeline & Automated Dev Releases</h2>
