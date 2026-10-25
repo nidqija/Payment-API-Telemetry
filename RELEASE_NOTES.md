@@ -1,52 +1,35 @@
-# 🚀 PaymentGateway.Api - v1.4.0
+# 🚀 PaymentGateway.Api - v1.5.0
 
-> **OpenTelemetry Distributed Tracing, Observability Pipeline & Automated Dev Releases**  
-> *Released: Oct 09 - Oct 18, 2026* • *Trigger: Merged to `master`* • *Commit: `70d7232`*
+> **Merchant Webhook Callback Engine, Live Polling Dashboard & Dynamic Cloudflare Ingress Resolution**  
+> *Released: Oct 25, 2026* • *Trigger: Merged to `master`* • *Commit: `92c93a5`*
 
 ---
 
 ### 📋 Developer Release Notes & Highlights
 
-#### 🔭 OpenTelemetry Tracing & Domain Metrics
+#### 🔔 Webhook Callback Engine & Delivery Pipeline
 
-- **End-to-End OpenTelemetry SDK & OTLP Exporter Integration**
-  Integrated official OpenTelemetry runtime packages (`OpenTelemetry.Extensions.Hosting`, `OpenTelemetry.Exporter.OpenTelemetryProtocol`, `OpenTelemetry.Instrumentation.AspNetCore`, `OpenTelemetry.Instrumentation.Http`, and `Npgsql.OpenTelemetry`). Registered unified `PaymentGateway.Api` service identity and configured OTLP export via gRPC to `http://otel:4317`. Automatically suppresses noisy background polling on `/health` and `/dashboard` endpoints to guarantee high-signal telemetry.
+- **Asynchronous Merchant Webhook Delivery with HMAC-SHA256 Signatures**
+  Built the `WebhookDispatch` service using typed `HttpClient` to deliver cryptographically signed webhook notifications (`X-Signature` with HMAC-SHA256, `X-Event-Type`) upon payment completion. Automatically logs delivery duration, HTTP status code, request headers, payload, and response bodies into PostgreSQL's `webhook_callback` table for full delivery auditability.
 
-- **Domain Performance Metrics via System.Diagnostics.Metrics**
-  Built static `ApiTracingService` exposing a dedicated `PaymentGateway.Core` Meter. Tracks throughput via `payment.processed.count` (Counter), measures cache efficiency via `invoice.cache.hit.count` and `invoice.cache.miss.count` (Counters), and records granular PDF generation latencies with `invoice.render.duration_ms` and `invoice.render.amount_ms` (Histograms).
+- **Dynamic Ingress & Ephemeral Cloudflare Tunnel Resolution**
+  Resolved runtime ingress mapping by mounting `./configs:/app/configs:ro` into the API container. Dynamically reads active `APP_BASE_URL` from `configs/.env` on request to support ephemeral Cloudflare Tunnel endpoints without container rebuilds or stale boot-time environment variables. Safely falls back to internal `http://nginx:80` for container-to-container routing.
 
-- **Fine-Grained Activity Tracing & Events in Invoice Engine**
-  Instrumented `InvoiceService.GetOrGenerateInvoicePdf` using `ActivitySource.StartActivity("GetOrGenerateInvoicePdf")`. Injects semantic tags (`payment.id`, `cache.hit`, `invoice.size_bytes`, `pdf.render.duration_ms`), emits chronological activity events (`redis_cache_lookup_started`, `pdf_generation_started`), and sets explicit `ActivityStatusCode.Ok` / `Error` statuses for end-to-end distributed trace tracking across Redis and PostgreSQL.
-
-#### 🐳 Telemetry Infrastructure & Orchestration
-
-- **OpenTelemetry Collector Service & Multi-Port Networking**
-  Integrated `otel/opentelemetry-collector-contrib:latest` into `docker-compose.yml`. Exposes OTLP gRPC (`4317`), OTLP HTTP (`4318`), Prometheus internal metrics (`8888`), and health check (`13133`) ports. Authored `configs/otel-collector-config.yaml` with batch processing pipelines (1s timeout, 256 batch size) and detailed debug exporters.
-
-- **Nginx Reverse Proxy Architecture & Tuning Annotations**
-  Documented `configs/nginx.conf` with inline explanations for reverse proxy routing, keepalive connection pooling (32 connections), 10-second client timeouts, standard reverse proxy forwarding headers, and custom buffer allocations specifically sized for QuestPDF document transmission.
-
-#### 🚀 Developer Release Automation & CI/CD
-
-- **Automated Dev Release Pipeline via GitHub Actions**
-  Created `.github/workflows/dev_release.yml` running on merges to `master`. Automates .NET 9 compilation, binary zip packaging (`paymentgateway-api-{version}.zip`), Docker dual-tag builds (`:dev` and `:{version}`), and seamless GitHub Release generation with release notes.
-
-- **Dynamic Release Notes Generator Tooling**
-  Built `scripts/generate_release_notes.py` to dynamically parse the latest release section from `CHANGELOG.html`, generating formatted `RELEASE_NOTES.md` and setting GITHUB_OUTPUT environment values for release jobs.
+- **Live Webhook Deliveries Dashboard & Polling API**
+  Implemented `GET /v1/webhooks` to fetch recent deliveries and created an interactive, dark-themed real-time monitoring page (`/webhooks` via Nginx) with automatic 2-second live polling, status badge indicators (`status-2xx`, `status-err`), formatted JSON payloads, and delivery latency metrics. Added `POST /test-webhook` mock receiver endpoint for zero-dependency end-to-end verification.
 
 
 ---
 
 ### 🔨 Commits in this Release
-- `70d7232` - added new port expose to docker compose and refined code structure via comment as explanation for otel service
-- `51f80c6` - added otel config on program mount file and defined metric variables for tracing
-- `00a6846` - added comments on nginx config and init file for ApiTracingServices
-- `a1c8a72` - fix: resolve yaml syntax error by externalizing release notes generator script
-- `a42e748` - added dev release github action scripts
+- `92c93a5` - feat(webhook): add webhook callback dispatch, logging dashboard, and dynamic tunnel resolution
+- `e0c9e4f` - added webhook callback insertion upon completed payment transactions
+- `ba19425` - added webhook dispatch and sql transactions for webhook operations
+- `70dd0c9` - added callback url dispatch load init
 
 ---
 
 ### 📦 Artifacts
-- **Binary Package**: `paymentgateway-api-v1.4.0.zip`
+- **Binary Package**: `paymentgateway-api-v1.5.0.zip`
 - **Interactive Changelog**: `CHANGELOG.html`
-- **Docker Tags**: `paymentgateway-api:dev`, `paymentgateway-api:v1.4.0`
+- **Docker Tags**: `paymentgateway-api:dev`, `paymentgateway-api:v1.5.0`
