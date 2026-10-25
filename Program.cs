@@ -8,6 +8,7 @@ using Features.Invoice;
 using OpenTelemetry.Resources;
 using OpenTelemetry.Trace;
 using OpenTelemetry.Metrics;
+using Features.Webhook;
 
 DotEnv.Load();
 
@@ -32,9 +33,23 @@ var serviceName = "PaymentGateway.Api";
 var serviceVersion = "1.0.0";
 
 
+DotEnv.Load(options: new DotEnvOptions(
+    envFilePaths: new[]
+    {
+        ".env", Path.Combine(Directory.GetCurrentDirectory(), "configs" , ".env")
+    },
+
+    ignoreExceptions: true
+));
+
 builder.Services.AddSingleton(NpgsqlDataSource.Create(connectionString));
 builder.Services.AddSingleton<IConnectionMultiplexer>(
     ConnectionMultiplexer.Connect(redisConnectionString)
+);
+
+// register webhook dispatch service to program
+builder.Services.AddHttpClient<WebhookDispatch>(client =>
+   client.Timeout = TimeSpan.FromSeconds(10)
 );
 
 
