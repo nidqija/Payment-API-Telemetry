@@ -91,6 +91,6 @@ VALUES (
     '00000000-0000-0000-0000-000000000001',
     'Local Test Merchant',
     'merchant@test.local',
-    'http://localhost:5000/webhook',
+    '/test-webhook',
     'whsec_test_secret_key'
 ) ON CONFLICT (id) DO NOTHING;

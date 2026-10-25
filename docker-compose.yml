@@ -18,6 +18,8 @@ services:
         ports:
             - 127.0.0.1:5248:8080
         restart: unless-stopped
+        volumes:
+            - ./configs:/app/configs:ro
     cloudflared:
         command: tunnel --no-autoupdate --logfile /app/logs/tunnel.log --url http://nginx:80
         container_name: standalone_cloudflared
