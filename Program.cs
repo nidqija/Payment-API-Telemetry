@@ -115,5 +115,6 @@ app.MapGet("/", () => "Hello World!");
 
 app.MapPaymentEndpoints();
 app.MapInvoiceEndpoints();
+app.MapWebhookEndpoints();
 
 app.Run();

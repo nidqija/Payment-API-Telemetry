@@ -117,9 +117,31 @@ public static class PaymentEndpoints
                 var webhookSecret = reader.GetString(1);
                 reader.Close();
 
+                // Always check mounted configs/.env first because compose-gen updates it dynamically at runtime
+                string? publicBaseUrl = null;
+                if (File.Exists("configs/.env"))
+                {
+                    var line = File.ReadAllLines("configs/.env").FirstOrDefault(l => l.StartsWith("APP_BASE_URL="));
+                    if (line != null)
+                    {
+                        publicBaseUrl = line.Split('=', 2)[1].Trim();
+                    }
+                }
+
+                if (string.IsNullOrEmpty(publicBaseUrl))
+                {
+                    publicBaseUrl = Environment.GetEnvironmentVariable("APP_BASE_URL");
+                }
+
+                publicBaseUrl = !string.IsNullOrEmpty(publicBaseUrl) ? publicBaseUrl.TrimEnd('/') : "http://nginx:80";
+
+                if (!string.IsNullOrEmpty(webhookUrl) && webhookUrl.StartsWith("/"))
+                {
+                    webhookUrl = $"{publicBaseUrl}{webhookUrl}";
+                }
+
 
                 object? invoiceResponse = null;
-                var publicBaseUrl = (Environment.GetEnvironmentVariable("APP_BASE_URL") ?? "http://localhost").TrimEnd('/');
                 var invoiceDownloadUrl = $"{publicBaseUrl}/v1/payments/{chargeId}/invoice";
 
                 if (request.GenerateInvoice)

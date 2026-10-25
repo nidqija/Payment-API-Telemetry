@@ -39,7 +39,57 @@
 
 
     <script>
-        
+        const rowsEl = document.getElementById('rows');
+
+        async function fetchDeliveries() {
+            try {
+                const res = await fetch('/v1/webhooks');
+                if(!res.ok) throw new Error(`HTTP ${res.status}`);
+
+                const data = await res.json();
+
+                if(!data || data.length === 0) {
+                    rowsEl.innerHTML = `<tr><td colspan=6 style="text-align:center">No deliveries recorded.</td></tr>`
+                } else {
+                    rowsEl.innerHTML = data.map(item => {
+                        const statusCode = item.http_status_code || "no status";
+                        const isSuccess = statusCode.startsWith('2');
+                        const statusClass = isSuccess ? 'status-2xx' : 'status-err';
+
+                        const time = item.delivered_at ? new Date(item.delivered_at).toLocaleTimeString() : '-';
+
+                        let formattedPayload = item.payload;
+
+                        try
+                        {
+                            formattedPayload = JSON.stringify(JSON.parse(item.payload), null, 2)
+                        }
+                        catch(err)
+                        {
+                            formattedPayload = item.payload
+                        }
+
+                        return `
+                            <tr>
+                            <td>${time}</td>
+                            <td><span class="status ${statusClass}">${statusCode}</span></td>
+                            <td>${item.event_type}</td>
+                            <td>${item.target_url}</td>
+                            <td>${item.duration_ms ?? 0}ms</td>
+                            <td><pre>${formattedPayload}</pre></td>
+                            </tr>
+                        `
+                    }).join('');
+                    
+                } 
+            }catch(err) {
+                    console.error("Failed to fetch webhook deliveries:" , err);
+                }
+        }
+
+        fetchDeliveries();
+        setInterval(fetchDeliveries, 2000);
+
     </script>
     
 </body>
