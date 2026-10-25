@@ -19,7 +19,7 @@ services:
             - 127.0.0.1:5248:8080
         restart: unless-stopped
     cloudflared:
-        command: tunnel --no-autoupdate --logfile /app/logs/tunnel.log --url http://host.docker.internal:8025
+        command: tunnel --no-autoupdate --logfile /app/logs/tunnel.log --url http://nginx:80
         container_name: standalone_cloudflared
         extra_hosts:
             - host.docker.internal:host-gateway
