@@ -29,6 +29,23 @@ services:
         restart: unless-stopped
         volumes:
             - ./logs:/app/logs
+    grafana-k6:
+        tty: true
+        container_name: k6_load_test
+        entrypoint:
+            - k6
+            - run
+            - /scripts/load-test.js
+        environment:
+            - API_URL=https://test.k6.io
+            - K6_WEB_DASHBOARD=true
+            - K6_WEB_DASHBOARD_PORT=5665
+            - K6_WEB_DASHBOARD_HOST=0.0.0.0
+        image: grafana/k6:latest
+        ports:
+            - 5665:5665
+        volumes:
+            - ./tests/k6:/scripts
     nginx:
         depends_on:
             - api
