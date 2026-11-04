@@ -36,11 +36,19 @@ services:
             - k6
             - run
             - /scripts/load-test.js
+
+        # grafana k6 load testing service configuration
+        # depends on the api service to ensure that the API is up and running before starting the load test
+        depends_on:
+            - api
         environment:
-            - API_URL=https://test.k6.io
+            # preset the environment variables for the k6 load testing service, including the API URL, enabling the k6 web dashboard, and setting the dashboard port and host
+            - API_URL=http://api:8080
             - K6_WEB_DASHBOARD=true
             - K6_WEB_DASHBOARD_PORT=5665
             - K6_WEB_DASHBOARD_HOST=0.0.0.0
+            # output the k6 test report to a file in the /scripts directory, which is mounted as a volume from the host machine
+            - K6_WEB_DASHBOARD_EXPORT=/scripts/test-report.html
         image: grafana/k6:latest
         ports:
             - 5665:5665
